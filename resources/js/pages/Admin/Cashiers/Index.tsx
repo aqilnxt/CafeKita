@@ -9,6 +9,29 @@ import {
     MagnifyingGlassIcon,
     UserCircleIcon,
 } from '@heroicons/react/24/outline';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 type Cashier = {
     id: number;
@@ -33,9 +56,7 @@ export default function Index({ auth, cashiers }: Props) {
     );
 
     const handleDelete = (id: number) => {
-        if (confirm('Apakah Anda yakin ingin menghapus kasir ini?')) {
-            router.delete(`/admin/cashiers/${id}`);
-        }
+        router.delete(`/admin/cashiers/${id}`);
     };
 
     return (
@@ -45,107 +66,125 @@ export default function Index({ auth, cashiers }: Props) {
         >
             <Head title="Kasir" />
 
-            <div className="bg-white rounded-lg shadow">
-                <div className="p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="flex-1 max-w-sm">
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="text"
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-[#967259] focus:border-[#967259] sm:text-sm"
-                                    placeholder="Cari kasir..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                        <div className="flex space-x-3">
-                            <Link
-                                href={route('admin.cashiers.create')}
-                                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#967259] hover:bg-[#7D5A44] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#967259]"
-                            >
-                                <PlusIcon className="h-5 w-5 mr-2" />
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <CardTitle>Manajemen Kasir</CardTitle>
+                        <Button asChild className="bg-[#967259] hover:bg-[#7D5A44]">
+                            <Link href={route('admin.cashiers.create')}>
+                                <PlusIcon className="h-4 w-4 mr-2" />
                                 Tambah Kasir
                             </Link>
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <div className="mb-6">
+                        <div className="relative max-w-sm">
+                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                type="text"
+                                placeholder="Cari kasir..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-9"
+                            />
                         </div>
                     </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Kasir
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Kontak
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Login Terakhir
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Aksi
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                    <div className="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Kasir</TableHead>
+                                    <TableHead>Kontak</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Login Terakhir</TableHead>
+                                    <TableHead className="text-right">Aksi</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
                                 {filteredCashiers.map((cashier) => (
-                                    <tr key={cashier.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="flex-shrink-0 h-10 w-10">
-                                                    <UserCircleIcon className="h-10 w-10 text-gray-400" />
-                                                </div>
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900">{cashier.name}</div>
-                                                    <div className="text-sm text-gray-500">{cashier.email}</div>
+                                    <TableRow key={cashier.id}>
+                                        <TableCell>
+                                            <div className="flex items-center space-x-3">
+                                                <UserCircleIcon className="h-8 w-8 text-muted-foreground" />
+                                                <div>
+                                                    <div className="font-medium">{cashier.name}</div>
+                                                    <div className="text-sm text-muted-foreground">{cashier.email}</div>
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{cashier.phone}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                cashier.status === 'active' 
-                                                    ? 'bg-green-100 text-green-800' 
-                                                    : 'bg-red-100 text-red-800'
-                                            }`}>
+                                        </TableCell>
+                                        <TableCell>{cashier.phone}</TableCell>
+                                        <TableCell>
+                                            <Badge 
+                                                variant={cashier.status === 'active' ? 'default' : 'secondary'}
+                                                className={cashier.status === 'active' 
+                                                    ? 'bg-green-100 text-green-800 hover:bg-green-100' 
+                                                    : 'bg-red-100 text-red-800 hover:bg-red-100'
+                                                }
+                                            >
                                                 {cashier.status === 'active' ? 'Aktif' : 'Nonaktif'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
-                                                {new Date(cashier.last_login).toLocaleString('id-ID')}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            {new Date(cashier.last_login).toLocaleString('id-ID')}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end space-x-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    asChild
+                                                    className="text-[#967259] hover:text-[#7D5A44] hover:bg-[#967259]/10"
+                                                >
+                                                    <Link href={`/admin/cashiers/${cashier.id}/edit`}>
+                                                        <PencilIcon className="h-4 w-4" />
+                                                    </Link>
+                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-red-600 hover:text-red-900 hover:bg-red-50"
+                                                        >
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Apakah Anda yakin ingin menghapus kasir ini? Tindakan ini tidak dapat dibatalkan.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Batal</AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                onClick={() => handleDelete(cashier.id)}
+                                                                className="bg-red-600 hover:bg-red-700"
+                                                            >
+                                                                Hapus
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <Link
-                                                href={`/admin/cashiers/${cashier.id}/edit`}
-                                                className="text-[#967259] hover:text-[#7D5A44] mr-4"
-                                            >
-                                                <PencilIcon className="h-5 w-5 inline" />
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDelete(cashier.id)}
-                                                className="text-red-600 hover:text-red-900"
-                                            >
-                                                <TrashIcon className="h-5 w-5 inline" />
-                                            </button>
-                                        </td>
-                                    </tr>
+                                        </TableCell>
+                                    </TableRow>
                                 ))}
-                            </tbody>
-                        </table>
+                            </TableBody>
+                        </Table>
                     </div>
-                </div>
-            </div>
+
+                    {filteredCashiers.length === 0 && (
+                        <div className="text-center py-8 text-muted-foreground">
+                            {searchTerm ? 'Tidak ada kasir yang ditemukan.' : 'Belum ada data kasir.'}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         </AdminLayout>
     );
-} 
+}

@@ -23,8 +23,22 @@ class ReviewController extends Controller
         if ($request->order_id) {
             $order = Order::findOrFail($request->order_id);
             if ($order->user_id !== auth()->id()) {
-                abort(403);
+                abort(403, 'Tidak dapat memberikan review untuk pesanan orang lain');
             }
+            
+            // Pastikan order sudah completed
+            if ($order->status !== 'completed') {
+                return back()->withErrors(['message' => 'Pesanan harus selesai sebelum dapat memberikan review']);
+            }
+        }
+
+        // Cek apakah user sudah pernah memberikan review untuk produk ini
+        $existingReview = Review::where('user_id', auth()->id())
+            ->where('product_id', $product->id)
+            ->first();
+
+        if ($existingReview) {
+            return back()->withErrors(['message' => 'Anda sudah memberikan review untuk produk ini']);
         }
 
         $review = Review::create([
@@ -42,7 +56,7 @@ class ReviewController extends Controller
     {
         // Pastikan user hanya bisa mengedit review miliknya
         if ($review->user_id !== auth()->id()) {
-            abort(403);
+            abort(403, 'Tidak dapat mengedit review orang lain');
         }
 
         $request->validate([
@@ -62,11 +76,11 @@ class ReviewController extends Controller
     {
         // Pastikan user hanya bisa menghapus review miliknya
         if ($review->user_id !== auth()->id()) {
-            abort(403);
+            abort(403, 'Tidak dapat menghapus review orang lain');
         }
 
         $review->delete();
 
         return back()->with('success', 'Review berhasil dihapus');
     }
-} 
+}

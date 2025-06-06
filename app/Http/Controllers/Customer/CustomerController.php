@@ -213,30 +213,54 @@ class CustomerController extends Controller
         
         return redirect()->route('customer.profile')->with('success', 'Profil berhasil diperbarui!');
     }
-    
+
     // Menampilkan detail produk
+// Tambahkan/update method ini di CustomerController.php
+
     public function showProduct(Product $product)
     {
-        $product->load(['category', 'reviews.user']);
+        // Load relasi yang diperlukan
+        $product->load(['category', 'reviews' => function($query) {
+            $query->with('user')->latest();
+        }]);
         
-        // Cek apakah user sudah pernah membeli produk ini
-        $hasPurchased = Order::where('user_id', auth()->id())
+        $user = auth()->user();
+        
+        // Cek apakah user sudah pernah membeli produk ini dan pesanannya completed
+        $purchasedOrder = Order::where('user_id', $user->id)
             ->whereHas('items', function ($query) use ($product) {
                 $query->where('product_id', $product->id);
             })
             ->where('status', 'completed')
-            ->exists();
+            ->first();
         
-        // Cek apakah user sudah memberikan review
-        $hasReviewed = $product->reviews()
-            ->where('user_id', auth()->id())
-            ->exists();
+        $hasPurchased = $purchasedOrder !== null;
         
+        // Cek apakah user sudah memberikan review untuk produk ini
+        $existingReview = Review::where('user_id', $user->id)
+            ->where('product_id', $product->id)
+            ->first();
+        
+        $hasReviewed = $existingReview !== null;
         $canReview = $hasPurchased && !$hasReviewed;
+        
+        // Hitung average rating dan total reviews
+        $averageRating = $product->reviews->avg('rating') ?? 0;
+        $totalReviews = $product->reviews->count();
+        
+        // Tambahkan data rating ke product
+        $product->average_rating = round($averageRating, 1);
+        $product->total_reviews = $totalReviews;
         
         return Inertia::render('Customer/ProductDetail', [
             'product' => $product,
-            'canReview' => $canReview
+            'canReview' => $canReview,
+            'orderId' => $hasPurchased ? $purchasedOrder->id : null,
+            'existingReview' => $existingReview ? [
+                'id' => $existingReview->id,
+                'rating' => $existingReview->rating,
+                'comment' => $existingReview->comment,
+            ] : null,
         ]);
     }
 } 

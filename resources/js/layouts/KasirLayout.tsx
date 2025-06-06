@@ -1,219 +1,139 @@
-import React, { useState } from 'react';
-import { Link, usePage } from '@inertiajs/react';
-import { PageProps } from '@/types';
-import {
-    HomeIcon,
-    ShoppingCartIcon,
-    ClipboardDocumentListIcon,
-    ArrowLeftOnRectangleIcon,
-    UserCircleIcon,
-} from '@heroicons/react/24/outline';
+import React from 'react';
+import { Link } from '@inertiajs/react';
+import { PageProps, User } from '@/types'; // Import User type
+import { NavMain } from '@/components/nav-main';
+import { NavUser } from '@/components/nav-user';
+import { 
+    Sidebar, 
+    SidebarContent, 
+    SidebarFooter, 
+    SidebarHeader, 
+    SidebarMenu, 
+    SidebarMenuButton, 
+    SidebarMenuItem,
+    SidebarProvider,
+    SidebarTrigger,
+    SidebarInset
+} from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
+import { 
+    Coffee,
+    Home,
+    ShoppingCart,
+    ClipboardList,
+    Settings
+} from 'lucide-react';
+import { type NavItem } from '@/types';
 
 interface Props {
     children: React.ReactNode;
-    user: any;
+    user: User; // Change from 'any' to 'User'
     header?: React.ReactNode;
 }
 
-const navigation = [
-    { name: 'Dashboard', href: route('kasir.dashboard'), icon: HomeIcon },
-    { name: 'Transaksi Baru', href: route('kasir.transactions.create'), icon: ShoppingCartIcon },
-    { name: 'Pesanan', href: route('kasir.orders.index'), icon: ClipboardDocumentListIcon },
+// Navigation items for kasir
+const mainNavItems: NavItem[] = [
+    {
+        title: 'Dashboard',
+        href: '/kasir/dashboard',
+        icon: Home,
+    },
+    {
+        title: 'Transaksi Baru',
+        href: '/kasir/transactions/create',
+        icon: ShoppingCart,
+    },
+    {
+        title: 'Pesanan',
+        href: '/kasir/orders',
+        icon: ClipboardList,
+    },
 ];
 
-export default function KasirLayout({ children, user, header }: Props) {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [profileOpen, setProfileOpen] = useState(false);
+const footerNavItems: NavItem[] = [
+    {
+        title: 'Pengaturan',
+        href: '/kasir/settings',
+        icon: Settings,
+    },
+];
 
+// App Logo Component
+function AppLogo() {
     return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Mobile sidebar */}
-            <div
-                className={`fixed inset-0 z-40 lg:hidden ${
-                    sidebarOpen ? 'block' : 'hidden'
-                }`}
-            >
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
-                <div className="fixed inset-y-0 left-0 flex w-72 flex-col bg-white">
-                    <div className="flex h-16 items-center justify-between px-4 border-b">
-                        <h1 className="text-xl font-bold text-[#967259]">Kopi Kita</h1>
-                        <button
-                            type="button"
-                            className="text-gray-500 hover:text-gray-600"
-                            onClick={() => setSidebarOpen(false)}
-                        >
-                            <span className="sr-only">Close sidebar</span>
-                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto px-4 py-4">
-                        <nav className="space-y-1">
-                            {navigation.map((item) => (
-                                <Link
-                                    key={item.name}
-                                    href={item.href}
-                                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-lg ${
-                                        route().current(item.href)
-                                            ? 'bg-[#967259] text-white'
-                                            : 'text-gray-700 hover:bg-[#967259] hover:text-white'
-                                    }`}
-                                >
-                                    <item.icon
-                                        className={`mr-3 h-6 w-6 flex-shrink-0 ${
-                                            route().current(item.href)
-                                                ? 'text-white'
-                                                : 'text-gray-500 group-hover:text-white'
-                                        }`}
-                                    />
-                                    {item.name}
-                                </Link>
-                            ))}
-                        </nav>
-                    </div>
-                    <div className="border-t border-gray-200 p-4">
-                        <div className="relative">
-                            <button
-                                onClick={() => setProfileOpen(!profileOpen)}
-                                className="flex items-center w-full text-left focus:outline-none"
-                            >
-                                <div className="flex-shrink-0">
-                                    <div className="h-8 w-8 rounded-full bg-[#967259] flex items-center justify-center text-white">
-                                        {user.name.charAt(0)}
-                                    </div>
-                                </div>
-                                <div className="ml-3">
-                                    <p className="text-sm font-medium text-gray-700">{user.name}</p>
-                                    <p className="text-xs text-gray-500">Kasir</p>
-                                </div>
-                            </button>
-                            {profileOpen && (
-                                <div className="absolute bottom-full left-0 mb-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                                    <div className="py-1">
-                                        <Link
-                                            href={route('profile.edit')}
-                                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                        >
-                                            <UserCircleIcon className="h-5 w-5 mr-2 text-gray-500" />
-                                            Profil
-                                        </Link>
-                                        <Link
-                                            href={route('logout')}
-                                            method="post"
-                                            as="button"
-                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                        >
-                                            <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2 text-gray-500" />
-                                            Keluar
-                                        </Link>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Desktop sidebar */}
-            <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col">
-                <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
-                    <div className="flex h-16 items-center px-4 border-b">
-                        <h1 className="text-xl font-bold text-[#967259]">Kopi Kita</h1>
-                    </div>
-                    <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4">
-                        <nav className="space-y-1">
-                            {navigation.map((item) => (
-                                <Link
-                                    key={item.name}
-                                    href={item.href}
-                                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-lg ${
-                                        route().current(item.href)
-                                            ? 'bg-[#967259] text-white'
-                                            : 'text-gray-700 hover:bg-[#967259] hover:text-white'
-                                    }`}
-                                >
-                                    <item.icon
-                                        className={`mr-3 h-6 w-6 flex-shrink-0 ${
-                                            route().current(item.href)
-                                                ? 'text-white'
-                                                : 'text-gray-500 group-hover:text-white'
-                                        }`}
-                                    />
-                                    {item.name}
-                                </Link>
-                            ))}
-                        </nav>
-                    </div>
-                    <div className="border-t border-gray-200 p-4">
-                        <div className="relative">
-                            <button
-                                onClick={() => setProfileOpen(!profileOpen)}
-                                className="flex items-center w-full text-left focus:outline-none"
-                            >
-                                <div className="flex-shrink-0">
-                                    <div className="h-8 w-8 rounded-full bg-[#967259] flex items-center justify-center text-white">
-                                        {user.name.charAt(0)}
-                                    </div>
-                                </div>
-                                <div className="ml-3">
-                                    <p className="text-sm font-medium text-gray-700">{user.name}</p>
-                                    <p className="text-xs text-gray-500">Kasir</p>
-                                </div>
-                            </button>
-                            {profileOpen && (
-                                <div className="absolute bottom-full left-0 mb-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                                    <div className="py-1">
-                                        <Link
-                                            href={route('profile.edit')}
-                                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                        >
-                                            <UserCircleIcon className="h-5 w-5 mr-2 text-gray-500" />
-                                            Profil
-                                        </Link>
-                                        <Link
-                                            href={route('logout')}
-                                            method="post"
-                                            as="button"
-                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                        >
-                                            <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2 text-gray-500" />
-                                            Keluar
-                                        </Link>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Main content */}
-            <div className="lg:pl-72">
-                <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 bg-white shadow">
-                    <button
-                        type="button"
-                        className="px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#967259] lg:hidden"
-                        onClick={() => setSidebarOpen(true)}
-                    >
-                        <span className="sr-only">Open sidebar</span>
-                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                        </svg>
-                    </button>
-                    <div className="flex flex-1 justify-between px-4">
-                        <div className="flex flex-1 items-center">
-                            {header}
-                        </div>
-                    </div>
-                </div>
-
-                <main className="py-6">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        {children}
-                    </div>
-                </main>
-            </div>
+        <div className="flex items-center space-x-2">
+            <Coffee className="h-6 w-6 text-amber-600" />
+            <span className="text-lg font-bold text-foreground">Kopi Kita</span>
         </div>
     );
-} 
+}
+
+// Kasir Sidebar Component
+function KasirSidebar() { // Change from 'any' to 'User'
+    return (
+        <Sidebar collapsible="icon" variant="inset">
+            <SidebarHeader>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton size="lg" asChild>
+                            <Link href={route('kasir.dashboard')}>
+                                <AppLogo />
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
+            
+            <SidebarContent>
+                <NavMain items={mainNavItems} />
+            </SidebarContent>
+            
+            <SidebarFooter>
+                <div className="mt-auto">
+                    <NavUser />
+                </div>
+            </SidebarFooter>
+        </Sidebar>
+    );
+}
+
+export default function KasirLayout({ children, user, header }: Props) {
+    // Show loading if user is undefined
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="flex flex-col items-center space-y-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
+                    <p className="text-sm text-muted-foreground">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <SidebarProvider>
+            <KasirSidebar />
+            <SidebarInset>
+                {/* Header */}
+                <header className="flex h-16 shrink-0 items-center gap-2">
+                    <div className="flex items-center gap-2 px-4">
+                        <SidebarTrigger className="-ml-1" />
+                        <Separator orientation="vertical" className="mr-2 h-4" />
+                        {header}
+                    </div>
+                </header>
+
+                {/* Main Content */}
+                <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+                    <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min">
+                        <main className="p-6">
+                            <div className="mx-auto max-w-7xl">
+                                {children}
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </SidebarInset>
+        </SidebarProvider>
+    );
+}

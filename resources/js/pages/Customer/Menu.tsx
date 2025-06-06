@@ -1,7 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import CustomerLayout from '@/layouts/CustomerLayout';
 import { Product, Category, PageProps } from '@/types';
+
+// shadcn/ui imports
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+
+import { 
+    ShoppingCart, 
+    Plus, 
+    Minus, 
+    Trash2, 
+    X, 
+    Check,
+    Search,
+    Filter,
+    Coffee
+} from 'lucide-react';
 
 interface Props extends PageProps {
     products: Product[];
@@ -19,23 +43,67 @@ interface OrderFormData {
     table_number?: string;
     notes?: string;
     order_type: 'dine_in' | 'takeaway';
+    [key: string]: any;
 }
 
 export default function Menu({ auth, products, categories }: Props) {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+    const [searchQuery, setSearchQuery] = useState<string>('');
     const [showCart, setShowCart] = useState(false);
     const [showCheckoutForm, setShowCheckoutForm] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [orderNumber, setOrderNumber] = useState<string>('');
 
-    const { data, setData, post, processing, errors, reset } = useForm<OrderFormData>({
-        items: [],
+    const { data, setData, post, processing, errors, reset } = useForm({
+        items: [] as { product_id: number; quantity: number }[],
         customer_name: auth.user?.name || '',
         table_number: '',
         notes: '',
-        order_type: 'dine_in'
+        order_type: 'dine_in' as 'dine_in' | 'takeaway'
     });
+
+    // Memoized filtered products for better performance
+    const filteredProducts = useMemo(() => {
+        let filtered = products;
+
+        // Filter by search query
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter(product => 
+                product.name.toLowerCase().includes(query) ||
+                (product.description && product.description.toLowerCase().includes(query))
+            );
+        }
+
+        // Filter by category
+        if (selectedCategory) {
+            filtered = filtered.filter(product => product.category_id === selectedCategory);
+        }
+
+        return filtered;
+    }, [products, searchQuery, selectedCategory]);
+
+    // Clear search when category changes
+    const handleCategoryChange = (categoryId: number | null) => {
+        setSelectedCategory(categoryId);
+        // Optionally clear search when changing category
+        // setSearchQuery('');
+    };
+
+    // Clear category when searching
+    const handleSearchChange = (value: string) => {
+        setSearchQuery(value);
+        // Optionally clear category filter when searching
+        // if (value.trim()) {
+        //     setSelectedCategory(null);
+        // }
+    };
+
+    const clearAllFilters = () => {
+        setSearchQuery('');
+        setSelectedCategory(null);
+    };
 
     const addToCart = (product: Product) => {
         setCart(prevCart => {
@@ -89,28 +157,19 @@ export default function Menu({ auth, products, categories }: Props) {
         
         post(route('customer.orders.store'), {
             onSuccess: (page: any) => {
-                // Assuming the backend returns order_number in the response
                 const newOrderNumber = page.props?.order_number || `ORD-${Date.now()}`;
                 setOrderNumber(newOrderNumber);
                 
-                // Reset form and cart
                 reset();
                 setCart([]);
                 setShowCheckoutForm(false);
                 setShowSuccess(true);
-                
-                // Optional: Redirect to kasir or show notification
-                // You can implement real-time notifications here
             },
             onError: (errors) => {
                 console.error('Order submission failed:', errors);
             }
         });
     };
-
-    const filteredProducts = selectedCategory
-        ? products.filter(product => product.category_id === selectedCategory)
-        : products;
 
     return (
         <CustomerLayout
@@ -119,318 +178,382 @@ export default function Menu({ auth, products, categories }: Props) {
         >
             <Head title="Menu" />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* Kategori Filter */}
-                    <div className="mb-6">
-                        <div className="flex space-x-2 overflow-x-auto pb-2">
-                            <button
-                                onClick={() => setSelectedCategory(null)}
-                                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-                                    selectedCategory === null
-                                        ? 'bg-[#967259] text-white'
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                }`}
-                            >
-                                Semua
-                            </button>
-                            {categories.map(category => (
+            <div className="py-6 sm:py-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Search and Filter Section */}
+                    <div className="mb-6 space-y-4">
+                        {/* Search Bar */}
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <Input
+                                type="text"
+                                placeholder="Cari menu favorit Anda..."
+                                value={searchQuery}
+                                onChange={(e) => handleSearchChange(e.target.value)}
+                                className="pl-10 pr-4 py-2 w-full"
+                            />
+                            {searchQuery && (
                                 <button
-                                    key={category.id}
-                                    onClick={() => setSelectedCategory(category.id)}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-                                        selectedCategory === category.id
-                                            ? 'bg-[#967259] text-white'
-                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                    }`}
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
                                 >
-                                    {category.name}
+                                    <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                                 </button>
-                            ))}
+                            )}
+                        </div>
+
+                        {/* Category Filter */}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Filter className="h-4 w-4" />
+                                <span className="hidden sm:inline">Kategori:</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                <Button
+                                    onClick={() => handleCategoryChange(null)}
+                                    variant={selectedCategory === null ? "default" : "outline"}
+                                    size="sm"
+                                    className={`whitespace-nowrap ${selectedCategory === null ? "bg-[#967259] hover:bg-[#7D5A44]" : ""}`}
+                                >
+                                    Semua
+                                </Button>
+                                {categories.map(category => (
+                                    <Button
+                                        key={category.id}
+                                        onClick={() => handleCategoryChange(category.id)}
+                                        variant={selectedCategory === category.id ? "default" : "outline"}
+                                        size="sm"
+                                        className={`whitespace-nowrap ${selectedCategory === category.id ? "bg-[#967259] hover:bg-[#7D5A44]" : ""}`}
+                                    >
+                                        {category.name}
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Active Filters & Results */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                                {(searchQuery || selectedCategory) && (
+                                    <Button
+                                        onClick={clearAllFilters}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-auto p-1 text-xs text-muted-foreground hover:text-foreground"
+                                    >
+                                        <X className="h-3 w-3 mr-1" />
+                                        Hapus Filter
+                                    </Button>
+                                )}
+                                {searchQuery && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        Pencarian: "{searchQuery}"
+                                    </Badge>
+                                )}
+                                {selectedCategory && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        Kategori: {categories.find(c => c.id === selectedCategory)?.name}
+                                    </Badge>
+                                )}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                                {filteredProducts.length} menu ditemukan
+                            </div>
                         </div>
                     </div>
 
-                    {/* Daftar Produk */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredProducts.map(product => (
-                            <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                                <img
-                                    src={product.image ? `/images/menu/${product.image}` : '/api/placeholder/300/200'}
-                                    alt={product.name}
-                                    className="w-full h-48 object-cover"
-                                />
-                                <div className="p-4">
-                                    <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
-                                    <p className="text-sm text-gray-500 mb-2">{product.description || 'Produk berkualitas'}</p>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-lg font-bold text-[#967259]">
-                                            Rp {product.price.toLocaleString('id-ID')}
-                                        </span>
-                                        <button
+                    {/* Product Grid */}
+                    {filteredProducts.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredProducts.map(product => (
+                                <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                                    <div className="aspect-video relative">
+                                        <img
+                                            src={product.image ? `/images/menu/${product.image}` : '/api/placeholder/300/200'}
+                                            alt={product.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                        {product.stock <= 5 && product.stock > 0 && (
+                                            <Badge 
+                                                variant="secondary" 
+                                                className="absolute top-2 right-2 text-orange-600 border-orange-200 bg-orange-50"
+                                            >
+                                                Stok tinggal {product.stock}
+                                            </Badge>
+                                        )}
+                                        {product.stock === 0 && (
+                                            <Badge 
+                                                variant="destructive" 
+                                                className="absolute top-2 right-2"
+                                            >
+                                                Habis
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
+                                        <p className="text-sm text-muted-foreground line-clamp-2">
+                                            {product.description || 'Produk berkualitas tinggi dengan cita rasa yang lezat'}
+                                        </p>
+                                    </CardHeader>
+                                    <CardFooter className="flex justify-between items-center pt-2">
+                                        <div className="flex flex-col">
+                                            <span className="text-lg font-bold text-[#967259]">
+                                                Rp {product.price.toLocaleString('id-ID')}
+                                            </span>
+                                        </div>
+                                        <Button
                                             onClick={() => addToCart(product)}
                                             disabled={product.stock === 0}
-                                            className={`px-4 py-2 rounded-md transition-colors ${
-                                                product.stock === 0
-                                                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                                                    : 'bg-[#967259] text-white hover:bg-[#7D5A44]'
-                                            }`}
+                                            className="bg-[#967259] hover:bg-[#7D5A44] disabled:opacity-50"
                                         >
                                             {product.stock === 0 ? 'Habis' : 'Tambah'}
-                                        </button>
-                                    </div>
-                                    {product.stock <= 5 && product.stock > 0 && (
-                                        <p className="text-xs text-orange-500 mt-1">Stok tinggal {product.stock}</p>
-                                    )}
-                                </div>
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        /* No Results */
+                        <div className="text-center py-12">
+                            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-muted mb-4">
+                                <Coffee className="h-8 w-8 text-muted-foreground" />
                             </div>
-                        ))}
-                    </div>
-
-                    {/* Tombol Keranjang Floating */}
-                    {getTotalItems() > 0 && (
-                        <button
-                            onClick={() => setShowCart(true)}
-                            className="fixed bottom-6 right-6 bg-[#967259] text-white p-4 rounded-full shadow-lg hover:bg-[#7D5A44] transition-colors z-50"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                            <h3 className="text-lg font-semibold mb-2">Tidak ada menu ditemukan</h3>
+                            <p className="text-muted-foreground mb-4">
+                                {searchQuery 
+                                    ? `Tidak ada menu yang cocok dengan pencarian "${searchQuery}"` 
+                                    : 'Tidak ada menu dalam kategori ini'
+                                }
+                            </p>
+                            <Button 
+                                onClick={clearAllFilters}
+                                variant="outline"
+                                className="mt-2"
                             >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                                />
-                            </svg>
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                                {getTotalItems()}
-                            </span>
-                        </button>
+                                Lihat Semua Menu
+                            </Button>
+                        </div>
                     )}
 
-                    {/* Modal Keranjang */}
-                    {showCart && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-lg w-full max-w-md max-h-screen overflow-hidden">
-                                <div className="p-4 border-b">
-                                    <div className="flex justify-between items-center">
-                                        <h3 className="text-lg font-semibold">Keranjang Belanja</h3>
-                                        <button
-                                            onClick={() => setShowCart(false)}
-                                            className="text-gray-500 hover:text-gray-700"
-                                        >
-                                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
+                    {/* Floating Cart Button */}
+                    {getTotalItems() > 0 && (
+                        <Button
+                            onClick={() => setShowCart(true)}
+                            className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-[#967259] hover:bg-[#7D5A44] shadow-lg z-50"
+                            size="icon"
+                        >
+                            <ShoppingCart className="h-6 w-6" />
+                            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-red-500">
+                                {getTotalItems()}
+                            </Badge>
+                        </Button>
+                    )}
+
+                    {/* Cart Dialog */}
+                    <Dialog open={showCart} onOpenChange={setShowCart}>
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>Keranjang Belanja</DialogTitle>
+                            </DialogHeader>
+                            <div className="max-h-96 overflow-y-auto">
+                                {cart.length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        Keranjang kosong
                                     </div>
-                                </div>
-                                <div className="p-4 max-h-96 overflow-y-auto">
-                                    {cart.length === 0 ? (
-                                        <p className="text-center text-gray-500 py-8">Keranjang kosong</p>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            {cart.map(item => (
-                                                <div key={item.product.id} className="flex items-center space-x-4">
-                                                    <img
-                                                        src={item.product.image ? `/images/menu/${item.product.image}` : '/api/placeholder/60/60'}
-                                                        alt={item.product.name}
-                                                        className="w-16 h-16 object-cover rounded"
-                                                    />
-                                                    <div className="flex-1">
-                                                        <h4 className="font-medium">{item.product.name}</h4>
-                                                        <p className="text-sm text-gray-500">
-                                                            Rp {item.product.price.toLocaleString('id-ID')}
-                                                        </p>
-                                                        <div className="flex items-center space-x-2 mt-1">
-                                                            <button
-                                                                onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                                                                className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                                                            >
-                                                                -
-                                                            </button>
-                                                            <span className="min-w-8 text-center">{item.quantity}</span>
-                                                            <button
-                                                                onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                                                                className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                                                            >
-                                                                +
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="font-medium">
-                                                            Rp {(item.product.price * item.quantity).toLocaleString('id-ID')}
-                                                        </p>
-                                                        <button
-                                                            onClick={() => removeFromCart(item.product.id)}
-                                                            className="text-red-500 hover:text-red-700 mt-1"
+                                ) : (
+                                    <div className="space-y-4">
+                                        {cart.map(item => (
+                                            <div key={item.product.id} className="flex items-center space-x-4">
+                                                <img
+                                                    src={item.product.image ? `/images/menu/${item.product.image}` : '/api/placeholder/60/60'}
+                                                    alt={item.product.name}
+                                                    className="w-16 h-16 object-cover rounded"
+                                                />
+                                                <div className="flex-1">
+                                                    <h4 className="font-medium">{item.product.name}</h4>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Rp {item.product.price.toLocaleString('id-ID')}
+                                                    </p>
+                                                    <div className="flex items-center space-x-2 mt-1">
+                                                        <Button
+                                                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                                                            size="icon"
+                                                            variant="outline"
+                                                            className="h-8 w-8"
                                                         >
-                                                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
-                                                        </button>
+                                                            <Minus className="h-3 w-3" />
+                                                        </Button>
+                                                        <span className="min-w-8 text-center">{item.quantity}</span>
+                                                        <Button
+                                                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                                                            size="icon"
+                                                            variant="outline"
+                                                            className="h-8 w-8"
+                                                        >
+                                                            <Plus className="h-3 w-3" />
+                                                        </Button>
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                                {cart.length > 0 && (
-                                    <div className="p-4 border-t">
-                                        <div className="flex justify-between items-center mb-4">
+                                                <div className="text-right">
+                                                    <p className="font-medium">
+                                                        Rp {(item.product.price * item.quantity).toLocaleString('id-ID')}
+                                                    </p>
+                                                    <Button
+                                                        onClick={() => removeFromCart(item.product.id)}
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="h-8 w-8 text-red-500 hover:text-red-700 mt-1"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            {cart.length > 0 && (
+                                <>
+                                    <Separator />
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center">
                                             <span className="font-medium">Total:</span>
                                             <span className="font-bold text-lg text-[#967259]">
                                                 Rp {getTotalPrice().toLocaleString('id-ID')}
                                             </span>
                                         </div>
-                                        <button
+                                        <Button
                                             onClick={handleProceedToCheckout}
-                                            className="w-full py-3 px-4 rounded-md text-white font-medium bg-[#967259] hover:bg-[#7D5A44] transition-colors"
+                                            className="w-full bg-[#967259] hover:bg-[#7D5A44]"
                                         >
                                             Lanjut ke Checkout
-                                        </button>
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Checkout Form Dialog */}
+                    <Dialog open={showCheckoutForm} onOpenChange={setShowCheckoutForm}>
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>Detail Pesanan</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleSubmitOrder} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="customer_name">Nama Pelanggan *</Label>
+                                    <Input
+                                        id="customer_name"
+                                        type="text"
+                                        value={data.customer_name}
+                                        onChange={(e) => setData('customer_name', e.target.value)}
+                                        required
+                                    />
+                                    {errors.customer_name && (
+                                        <Alert variant="destructive">
+                                            <AlertDescription>{errors.customer_name}</AlertDescription>
+                                        </Alert>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="order_type">Tipe Pesanan *</Label>
+                                    <Select value={data.order_type} onValueChange={(value) => setData('order_type', value as 'dine_in' | 'takeaway')}>
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="dine_in">Makan di Tempat</SelectItem>
+                                            <SelectItem value="takeaway">Bawa Pulang</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {data.order_type === 'dine_in' && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="table_number">Nomor Meja</Label>
+                                        <Input
+                                            id="table_number"
+                                            type="text"
+                                            value={data.table_number}
+                                            onChange={(e) => setData('table_number', e.target.value)}
+                                            placeholder="Contoh: A1, B5, dll"
+                                        />
                                     </div>
                                 )}
-                            </div>
-                        </div>
-                    )}
 
-                    {/* Modal Checkout Form */}
-                    {showCheckoutForm && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-lg w-full max-w-md max-h-screen overflow-hidden">
-                                <div className="p-4 border-b">
+                                <div className="space-y-2">
+                                    <Label htmlFor="notes">Catatan Tambahan</Label>
+                                    <Textarea
+                                        id="notes"
+                                        value={data.notes}
+                                        onChange={(e) => setData('notes', e.target.value)}
+                                        placeholder="Permintaan khusus, alergi, dll..."
+                                        rows={3}
+                                    />
+                                </div>
+
+                                <Separator />
+                                
+                                <div className="space-y-4">
                                     <div className="flex justify-between items-center">
-                                        <h3 className="text-lg font-semibold">Detail Pesanan</h3>
-                                        <button
-                                            onClick={() => setShowCheckoutForm(false)}
-                                            className="text-gray-500 hover:text-gray-700"
+                                        <span className="font-medium">Total Pesanan:</span>
+                                        <span className="font-bold text-lg text-[#967259]">
+                                            Rp {getTotalPrice().toLocaleString('id-ID')}
+                                        </span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Button
+                                            type="submit"
+                                            disabled={processing}
+                                            className="w-full bg-[#967259] hover:bg-[#7D5A44]"
                                         >
-                                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
+                                            {processing ? 'Memproses Pesanan...' : 'Kirim ke Kasir'}
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            onClick={() => setShowCheckoutForm(false)}
+                                            variant="outline"
+                                            className="w-full"
+                                        >
+                                            Kembali
+                                        </Button>
                                     </div>
                                 </div>
-                                <form onSubmit={handleSubmitOrder} className="p-4 space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Nama Pelanggan *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={data.customer_name}
-                                            onChange={(e) => setData('customer_name', e.target.value)}
-                                            className="w-full border-gray-300 rounded-lg focus:ring-[#967259] focus:border-[#967259]"
-                                            required
-                                        />
-                                        {errors.customer_name && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.customer_name}</p>
-                                        )}
-                                    </div>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Tipe Pesanan *
-                                        </label>
-                                        <select
-                                            value={data.order_type}
-                                            onChange={(e) => setData('order_type', e.target.value as 'dine_in' | 'takeaway')}
-                                            className="w-full border-gray-300 rounded-lg focus:ring-[#967259] focus:border-[#967259]"
-                                        >
-                                            <option value="dine_in">Makan di Tempat</option>
-                                            <option value="takeaway">Bawa Pulang</option>
-                                        </select>
-                                    </div>
-
-                                    {data.order_type === 'dine_in' && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Nomor Meja
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={data.table_number}
-                                                onChange={(e) => setData('table_number', e.target.value)}
-                                                className="w-full border-gray-300 rounded-lg focus:ring-[#967259] focus:border-[#967259]"
-                                                placeholder="Contoh: A1, B5, dll"
-                                            />
-                                        </div>
-                                    )}
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Catatan Tambahan
-                                        </label>
-                                        <textarea
-                                            value={data.notes}
-                                            onChange={(e) => setData('notes', e.target.value)}
-                                            className="w-full border-gray-300 rounded-lg focus:ring-[#967259] focus:border-[#967259]"
-                                            rows={3}
-                                            placeholder="Permintaan khusus, alergi, dll..."
-                                        />
-                                    </div>
-
-                                    <div className="border-t pt-4">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <span className="font-medium">Total Pesanan:</span>
-                                            <span className="font-bold text-lg text-[#967259]">
-                                                Rp {getTotalPrice().toLocaleString('id-ID')}
-                                            </span>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <button
-                                                type="submit"
-                                                disabled={processing}
-                                                className="w-full py-3 px-4 rounded-md text-white font-medium bg-[#967259] hover:bg-[#7D5A44] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                            >
-                                                {processing ? 'Memproses Pesanan...' : 'Kirim ke Kasir'}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowCheckoutForm(false)}
-                                                className="w-full py-2 px-4 rounded-md text-gray-700 font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
-                                            >
-                                                Kembali
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Modal Success */}
-                    {showSuccess && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-lg w-full max-w-md p-6">
-                                <div className="text-center">
-                                    <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-                                        <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Pesanan Berhasil Dikirim!</h3>
-                                    <p className="text-gray-600 mb-1">Nomor Pesanan: <span className="font-semibold text-[#967259]">{orderNumber}</span></p>
-                                    <p className="text-sm text-gray-500 mb-6">
+                    {/* Success Dialog */}
+                    <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
+                        <DialogContent className="sm:max-w-md">
+                            <div className="text-center space-y-4">
+                                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                                    <Check className="h-6 w-6 text-green-600" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-lg font-semibold">Pesanan Berhasil Dikirim!</h3>
+                                    <p className="text-muted-foreground">
+                                        Nomor Pesanan: <Badge className="bg-[#967259]">{orderNumber}</Badge>
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
                                         Pesanan Anda telah dikirim ke kasir dan akan segera diproses. 
                                         Silakan menunggu konfirmasi dari kasir.
                                     </p>
-                                    <button
-                                        onClick={() => setShowSuccess(false)}
-                                        className="w-full bg-[#967259] text-white py-2 px-4 rounded-lg hover:bg-[#7D5A44] transition-colors"
-                                    >
-                                        Pesan Lagi
-                                    </button>
                                 </div>
+                                <Button
+                                    onClick={() => setShowSuccess(false)}
+                                    className="w-full bg-[#967259] hover:bg-[#7D5A44]"
+                                >
+                                    Pesan Lagi
+                                </Button>
                             </div>
-                        </div>
-                    )}
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
         </CustomerLayout>

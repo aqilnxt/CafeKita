@@ -1,102 +1,130 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from '@inertiajs/react';
 import { User } from '@/types';
+import { NavMain } from '@/components/nav-main';
+import { NavUser } from '@/components/nav-user';
+import { 
+    Sidebar, 
+    SidebarContent, 
+    SidebarFooter, 
+    SidebarHeader, 
+    SidebarMenu, 
+    SidebarMenuButton, 
+    SidebarMenuItem,
+    SidebarProvider,
+    SidebarTrigger,
+    SidebarInset
+} from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
+import { 
+    Coffee,
+    Home,
+    Menu as MenuIcon,
+    ShoppingBag
+} from 'lucide-react';
+import { type NavItem } from '@/types';
 
 interface Props {
-    user: User;
-    header?: React.ReactNode;
+    user: User | undefined | null;
     children: React.ReactNode;
+    header?: React.ReactNode;
 }
 
-export default function CustomerLayout({ user, header, children }: Props) {
-    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+// Navigation items for customer
+const mainNavItems: NavItem[] = [
+    {
+        title: 'Dashboard',
+        href: '/customer/dashboard',
+        icon: Home,
+    },
+    {
+        title: 'Menu',
+        href: '/customer/menu',
+        icon: MenuIcon,
+    },
+    {
+        title: 'Pesanan Saya',
+        href: '/customer/orders',
+        icon: ShoppingBag,
+    },
+];
 
+// App Logo Component
+function AppLogo() {
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="bg-white border-b border-gray-100">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
-                        <div className="flex">
-                            {/* Logo */}
-                            <div className="shrink-0 flex items-center">
-                                <Link href={route('customer.dashboard')}>
-                                    <h1 className="text-xl font-bold text-gray-800">Cafe Shop</h1>
-                                </Link>
-                            </div>
-
-                            {/* Navigation Links */}
-                            <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <Link
-                                    href={route('customer.dashboard')}
-                                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
-                                >
-                                    Dashboard
-                                </Link>
-                                <Link
-                                    href={route('customer.menu')}
-                                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
-                                >
-                                    Menu
-                                </Link>
-                                <Link
-                                    href={route('customer.orders')}
-                                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
-                                >
-                                    Pesanan Saya
-                                </Link>
-                            </div>
-                        </div>
-
-                        <div className="hidden sm:flex sm:items-center sm:ml-6">
-                            {/* Profile Dropdown */}
-                            <div className="ml-3 relative">
-                                <div className="flex items-center">
-                                    <button
-                                        onClick={() => setShowingNavigationDropdown((previousState) => !previousState)}
-                                        className="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
-                                    >
-                                        <div>{user.name}</div>
-                                        <div className="ml-1">
-                                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                            </svg>
-                                        </div>
-                                    </button>
-                                </div>
-
-                                {showingNavigationDropdown && (
-                                    <div className="absolute right-0 z-50 mt-2 w-48 rounded-md shadow-lg origin-top-right">
-                                        <div className="rounded-md ring-1 ring-black ring-opacity-5 py-1 bg-white">
-                                            <Link
-                                                href={route('customer.profile')}
-                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                            >
-                                                Profil
-                                            </Link>
-                                            <Link
-                                                href={route('logout')}
-                                                method="post"
-                                                as="button"
-                                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                            >
-                                                Keluar
-                                            </Link>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            {header && (
-                <header className="bg-white shadow">
-                    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">{header}</div>
-                </header>
-            )}
-
-            <main>{children}</main>
+        <div className="flex items-center space-x-2">
+            <Coffee className="h-6 w-6 text-amber-600" />
+            <span className="text-lg font-bold text-foreground">Cafe Shop</span>
         </div>
     );
-} 
+}
+
+// Customer Sidebar Component
+function CustomerSidebar() {
+    return (
+        <Sidebar collapsible="icon" variant="inset">
+            <SidebarHeader>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton size="lg" asChild>
+                            <Link href={route('customer.dashboard')}>
+                                <AppLogo />
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
+            
+            <SidebarContent>
+                <NavMain items={mainNavItems} />
+            </SidebarContent>
+            
+            <SidebarFooter>
+                <div className="mt-auto">
+                    <NavUser />
+                </div>
+            </SidebarFooter>
+        </Sidebar>
+    );
+}
+
+export default function CustomerLayout({ user, children, header }: Props) {
+    // Show loading if user is undefined
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="flex flex-col items-center space-y-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
+                    <p className="text-sm text-muted-foreground">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <SidebarProvider>
+            <CustomerSidebar />
+            <SidebarInset>
+                {/* Header */}
+                <header className="flex h-16 shrink-0 items-center gap-2">
+                    <div className="flex items-center gap-2 px-4">
+                        <SidebarTrigger className="-ml-1" />
+                        <Separator orientation="vertical" className="mr-2 h-4" />
+                        {header}
+                    </div>
+                </header>
+
+                {/* Main Content */}
+                <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+                    <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min">
+                        <main className="p-6">
+                            <div className="mx-auto max-w-7xl">
+                                {children}
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </SidebarInset>
+        </SidebarProvider>
+    );
+}

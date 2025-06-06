@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
-import ReviewForm from '@/Components/ReviewForm';
-import ReviewList from '@/Components/ReviewList';
+import ReviewForm from '@/components/ReviewForm';
+import ReviewList from '@/components/ReviewList';
 
 interface Product {
     id: number;
@@ -28,9 +28,15 @@ interface Product {
 interface Props {
     product: Product;
     canReview: boolean;
+    orderId?: number;
+    existingReview?: {
+        id: number;
+        rating: number;
+        comment: string;
+    };
 }
 
-const ProductDetail: React.FC<Props> = ({ product, canReview }) => {
+const ProductDetail: React.FC<Props> = ({ product, canReview, orderId, existingReview }) => {
     return (
         <>
             <Head title={product.name} />
@@ -101,18 +107,30 @@ const ProductDetail: React.FC<Props> = ({ product, canReview }) => {
                         
                         {canReview && (
                             <div className="mt-6">
-                                <h3 className="text-lg font-medium text-gray-900">Tulis Review</h3>
+                                <h3 className="text-lg font-medium text-gray-900">
+                                    {existingReview ? 'Edit Review' : 'Tulis Review'}
+                                </h3>
                                 <div className="mt-4">
-                                    <ReviewForm productId={product.id} />
+                                    <ReviewForm 
+                                        productId={product.id}
+                                        orderId={orderId}
+                                        existingReview={existingReview}
+                                    />
                                 </div>
                             </div>
                         )}
 
                         <div className="mt-8">
-                            <ReviewList
-                                reviews={product.reviews}
-                                canEdit={canReview}
-                            />
+                            {product.reviews && product.reviews.length > 0 ? (
+                                <ReviewList
+                                    reviews={product.reviews}
+                                    canEdit={canReview}
+                                />
+                            ) : (
+                                <div className="text-center py-8">
+                                    <p className="text-gray-500">Belum ada review untuk produk ini.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -121,4 +139,4 @@ const ProductDetail: React.FC<Props> = ({ product, canReview }) => {
     );
 };
 
-export default ProductDetail; 
+export default ProductDetail;

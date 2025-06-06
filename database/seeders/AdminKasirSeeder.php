@@ -10,17 +10,17 @@ class AdminKasirSeeder extends Seeder
 {
     public function run(): void
     {
-        // Buat user admin, cek dulu emailnya
+        // Buat atau ambil user admin berdasarkan email
         $admin = User::firstOrCreate(
             ['email' => 'admin@cafe.com'],
             [
                 'name' => 'Admin',
                 'password' => Hash::make('password123'),
-                // tambahin field lain kalau perlu
+                // tambahkan field lain jika perlu
             ]
         );
 
-        // Buat user kasir, cek email juga
+        // Buat atau ambil user kasir berdasarkan email
         $kasir = User::firstOrCreate(
             ['email' => 'kasir@cafe.com'],
             [
@@ -29,9 +29,14 @@ class AdminKasirSeeder extends Seeder
             ]
         );
 
-        // Pastikan role kasir diassign cuma sekali
+        // Assign role kasir jika belum ada
         if (!$kasir->hasRole('kasir')) {
             $kasir->assignRole('kasir');
         }
+
+        if (!$admin->hasRole('admin')) {
+            $admin->assignRole('admin');
+        }
+        
     }
 }

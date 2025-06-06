@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Customer;
 
+use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -22,10 +23,10 @@ class OrderController extends Controller
             'table_number' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
-
+    
         try {
             DB::beginTransaction();
-
+    
             $order = Order::create([
                 'user_id' => auth()->id(),
                 'customer_name' => $request->customer_name,
@@ -35,18 +36,18 @@ class OrderController extends Controller
                 'status' => 'pending',
                 'total_amount' => 0,
             ]);
-
+    
             $totalAmount = 0;
-
+    
             foreach ($request->items as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 
                 if ($product->stock < $item['quantity']) {
                     throw new \Exception("Stok {$product->name} tidak mencukupi");
                 }
-
+    
                 $product->decrement('stock', $item['quantity']);
-
+    
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
@@ -54,21 +55,17 @@ class OrderController extends Controller
                     'price' => $product->price,
                     'subtotal' => $product->price * $item['quantity'],
                 ]);
-
+    
                 $totalAmount += $product->price * $item['quantity'];
             }
-
+    
             $order->update(['total_amount' => $totalAmount]);
-
+    
             DB::commit();
-
-            // Return Inertia response dengan data order
-            return Inertia::render('Customer/OrderSuccess', [
-                'message' => 'Pesanan berhasil dibuat',
-                'order' => $order->load('items.product'),
-                'order_number' => $order->number,
-            ]);
-
+    
+            // ✅ Redirect ke halaman sukses
+            return redirect()->route('customer.orders.success', $order->id);
+    
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors([
@@ -76,4 +73,19 @@ class OrderController extends Controller
             ]);
         }
     }
+    
+
+    public function success(Order $order)
+    {
+        if ($order->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        return Inertia::render('Customer/Payment/OrderSuccess', [
+            'message' => 'Pesanan berhasil dibuat',
+            'order' => $order->load('items.product'),
+            'order_number' => $order->number,
+        ]);
+    }
+
 }

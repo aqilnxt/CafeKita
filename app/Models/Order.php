@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use App\Events\NewOrderCreated;
+use App\Events\OrderStatusUpdated; // Import event untuk status order
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -26,7 +27,13 @@ class Order extends Model
     protected static function booted()
     {
         static::created(function ($order) {
-            Event::dispatch(new NewOrderCreated($order));
+            Event::dispatch(new NewOrderCreated($order)); // Event untuk pesanan baru
+        });
+
+        static::updated(function ($order) {
+            if ($order->isDirty('status')) {
+                Event::dispatch(new OrderStatusUpdated($order)); // Event untuk perubahan status
+            }
         });
     }
 
@@ -75,4 +82,4 @@ class Order extends Model
 
         return $colors[$this->status] ?? 'gray';
     }
-} 
+}

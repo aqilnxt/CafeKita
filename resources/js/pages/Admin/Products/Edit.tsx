@@ -2,6 +2,14 @@ import React from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { PageProps } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ArrowLeft } from 'lucide-react';
 
 type Category = {
     id: number;
@@ -37,7 +45,6 @@ export default function Edit({ auth, product, categories }: Props) {
         e.preventDefault();
         put(route('admin.products.update', product.id), {
             onSuccess: () => {
-                // Redirect ke halaman index setelah berhasil update
                 window.location.href = route('admin.products.index');
             },
         });
@@ -53,160 +60,148 @@ export default function Edit({ auth, product, categories }: Props) {
         <AdminLayout user={auth.user}>
             <Head title="Edit Produk - Admin" />
             
-            <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Edit Produk</h1>
-                    <Link
-                        href={route('admin.products.index')}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#967259]"
-                    >
-                        Kembali
-                    </Link>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                                Nama Produk
-                            </label>
-                            <input
-                                type="text"
-                                id="name"
-                                value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                                className={`mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#967259] focus:ring-[#967259] ${
-                                    errors.name ? 'border-red-500' : ''
-                                }`}
-                                required
-                            />
-                            {errors.name && (
-                                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                            )}
-                        </div>
-
-                        <div>
-                            <label htmlFor="price" className="block text-sm font-medium text-gray-700">
-                                Harga
-                            </label>
-                            <input
-                                type="number"
-                                id="price"
-                                value={data.price}
-                                onChange={(e) => setData('price', e.target.value)}
-                                className={`mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#967259] focus:ring-[#967259] ${
-                                    errors.price ? 'border-red-500' : ''
-                                }`}
-                                required
-                                min="0"
-                            />
-                            {errors.price && (
-                                <p className="mt-1 text-sm text-red-600">{errors.price}</p>
-                            )}
-                        </div>
-
-                        <div>
-                            <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
-                                Kategori
-                            </label>
-                            <select
-                                id="category_id"
-                                value={data.category_id}
-                                onChange={(e) => setData('category_id', e.target.value)}
-                                className={`mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#967259] focus:ring-[#967259] ${
-                                    errors.category_id ? 'border-red-500' : ''
-                                }`}
-                                required
-                            >
-                                <option value="">Pilih Kategori</option>
-                                {categories.map((category) => (
-                                    <option key={category.id} value={category.id}>
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.category_id && (
-                                <p className="mt-1 text-sm text-red-600">{errors.category_id}</p>
-                            )}
-                        </div>
-
-                        <div>
-                            <label htmlFor="stock" className="block text-sm font-medium text-gray-700">
-                                Stok
-                            </label>
-                            <input
-                                type="number"
-                                id="stock"
-                                value={data.stock}
-                                onChange={(e) => setData('stock', e.target.value)}
-                                className={`mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#967259] focus:ring-[#967259] ${
-                                    errors.stock ? 'border-red-500' : ''
-                                }`}
-                                required
-                                min="0"
-                            />
-                            {errors.stock && (
-                                <p className="mt-1 text-sm text-red-600">{errors.stock}</p>
-                            )}
-                        </div>
-
-                        <div className="md:col-span-2">
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                                Deskripsi
-                            </label>
-                            <textarea
-                                id="description"
-                                value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
-                                rows={3}
-                                className={`mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#967259] focus:ring-[#967259] ${
-                                    errors.description ? 'border-red-500' : ''
-                                }`}
-                            />
-                            {errors.description && (
-                                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-                            )}
-                        </div>
-
-                        <div className="md:col-span-2">
-                            <label htmlFor="image" className="block text-sm font-medium text-gray-700">
-                                Gambar Produk
-                            </label>
-                            {product.image && (
-                                <div className="mt-2 mb-4">
-                                    <img
-                                        src={`/images/menu/${product.image}`}
-                                        alt={product.name}
-                                        className="h-32 w-32 object-cover rounded-lg"
-                                    />
-                                </div>
-                            )}
-                            <input
-                                type="file"
-                                id="image"
-                                onChange={handleImageChange}
-                                accept="image/*"
-                                className={`mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#967259] file:text-white hover:file:bg-[#7D5A44] ${
-                                    errors.image ? 'border-red-500' : ''
-                                }`}
-                            />
-                            {errors.image && (
-                                <p className="mt-1 text-sm text-red-600">{errors.image}</p>
-                            )}
-                        </div>
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-2xl font-bold">Edit Produk</CardTitle>
+                        <Button variant="outline" asChild>
+                            <Link href={route('admin.products.index')}>
+                                <ArrowLeft className="w-4 h-4 mr-2" />
+                                Kembali
+                            </Link>
+                        </Button>
                     </div>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Nama Produk</Label>
+                                <Input
+                                    id="name"
+                                    type="text"
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    className={errors.name ? 'border-red-500' : ''}
+                                    required
+                                />
+                                {errors.name && (
+                                    <Alert variant="destructive">
+                                        <AlertDescription>{errors.name}</AlertDescription>
+                                    </Alert>
+                                )}
+                            </div>
 
-                    <div className="flex justify-end">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="px-4 py-2 text-sm font-medium text-white bg-[#967259] rounded-lg hover:bg-[#7D5A44] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#967259] disabled:opacity-50"
-                        >
-                            {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="price">Harga</Label>
+                                <Input
+                                    id="price"
+                                    type="number"
+                                    value={data.price}
+                                    onChange={(e) => setData('price', e.target.value)}
+                                    className={errors.price ? 'border-red-500' : ''}
+                                    required
+                                    min="0"
+                                />
+                                {errors.price && (
+                                    <Alert variant="destructive">
+                                        <AlertDescription>{errors.price}</AlertDescription>
+                                    </Alert>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="category_id">Kategori</Label>
+                                <Select 
+                                    value={data.category_id} 
+                                    onValueChange={(value) => setData('category_id', value)}
+                                >
+                                    <SelectTrigger className={errors.category_id ? 'border-red-500' : ''}>
+                                        <SelectValue placeholder="Pilih Kategori" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((category) => (
+                                            <SelectItem key={category.id} value={category.id.toString()}>
+                                                {category.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.category_id && (
+                                    <Alert variant="destructive">
+                                        <AlertDescription>{errors.category_id}</AlertDescription>
+                                    </Alert>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="stock">Stok</Label>
+                                <Input
+                                    id="stock"
+                                    type="number"
+                                    value={data.stock}
+                                    onChange={(e) => setData('stock', e.target.value)}
+                                    className={errors.stock ? 'border-red-500' : ''}
+                                    required
+                                    min="0"
+                                />
+                                {errors.stock && (
+                                    <Alert variant="destructive">
+                                        <AlertDescription>{errors.stock}</AlertDescription>
+                                    </Alert>
+                                )}
+                            </div>
+
+                            <div className="md:col-span-2 space-y-2">
+                                <Label htmlFor="description">Deskripsi</Label>
+                                <Textarea
+                                    id="description"
+                                    value={data.description}
+                                    onChange={(e) => setData('description', e.target.value)}
+                                    rows={3}
+                                    className={errors.description ? 'border-red-500' : ''}
+                                />
+                                {errors.description && (
+                                    <Alert variant="destructive">
+                                        <AlertDescription>{errors.description}</AlertDescription>
+                                    </Alert>
+                                )}
+                            </div>
+
+                            <div className="md:col-span-2 space-y-2">
+                                <Label htmlFor="image">Gambar Produk</Label>
+                                {product.image && (
+                                    <div className="mt-2 mb-4">
+                                        <img
+                                            src={`/images/menu/${product.image}`}
+                                            alt={product.name}
+                                            className="h-32 w-32 object-cover rounded-lg border"
+                                        />
+                                    </div>
+                                )}
+                                <Input
+                                    id="image"
+                                    type="file"
+                                    onChange={handleImageChange}
+                                    accept="image/*"
+                                    className={errors.image ? 'border-red-500' : ''}
+                                />
+                                {errors.image && (
+                                    <Alert variant="destructive">
+                                        <AlertDescription>{errors.image}</AlertDescription>
+                                    </Alert>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end">
+                            <Button type="submit" disabled={processing}>
+                                {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                            </Button>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
         </AdminLayout>
     );
 }

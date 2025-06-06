@@ -50,4 +50,13 @@ class Product extends Model
     {
         return $this->reviews()->count();
     }
+
+    public function getRatingDistributionAttribute()
+    {
+        return $this->reviews()
+            ->selectRaw('rating, COUNT(*) as count')
+            ->groupBy('rating')
+            ->pluck('count', 'rating')
+            ->toArray();
+    }
 }

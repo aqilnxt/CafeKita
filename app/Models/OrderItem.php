@@ -18,7 +18,7 @@ class OrderItem extends Model
     ];
 
     protected $casts = [
-        'options' => 'array',
+        'options' => 'array', // Jika ada opsi tambahan di order item, seperti customizations
     ];
 
     // Relasi dengan Order
@@ -32,4 +32,4 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Product::class);
     }
-} 
+}

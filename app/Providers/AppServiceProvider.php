@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Middleware\RoleMiddleware;
+use Inertia\Inertia;
 
 
 
@@ -25,7 +26,17 @@ class AppServiceProvider extends ServiceProvider
     {
         Route::aliasMiddleware('role', RoleMiddleware::class);
         Route::aliasMiddleware('permission', PermissionMiddleware::class);
-        Route::aliasMiddleware('role_or_permission', RoleOrPermissionMiddleware::class);    
+        Route::aliasMiddleware('role_or_permission', RoleOrPermissionMiddleware::class);   
+        
+        Inertia::share([
+            'flash' => function () {
+                return [
+                    'order_number' => session('order_number'),
+                    'success' => session('success'),
+                    'error' => session('error'),
+                ];
+            },
+        ]);
     }
 
     public static function redirectToByRole($user)

@@ -1,8 +1,13 @@
-// resources/js/Pages/Admin/Categories/Create.jsx
 import React from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { PageProps } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 type Props = PageProps;
 
@@ -20,67 +25,68 @@ export default function Create({ auth }: Props) {
     return (
         <AdminLayout user={auth.user}>
             <Head title="Tambah Kategori - Admin" />
-            
-            <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Tambah Kategori Baru</h1>
-                    <Link
-                        href={route('admin.categories.index')}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#967259]"
-                    >
-                        Kembali
-                    </Link>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                            Nama Kategori
-                        </label>
-                        <input
-                            type="text"
-                            id="name"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            className={`mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#967259] focus:ring-[#967259] ${
-                                errors.name ? 'border-red-500' : ''
-                            }`}
-                            required
-                        />
-                        {errors.name && (
-                            <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                        )}
+           
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-2xl">Tambah Kategori Baru</CardTitle>
+                        <Button variant="outline" asChild>
+                            <Link href={route('admin.categories.index')}>
+                                <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                                Kembali
+                            </Link>
+                        </Button>
                     </div>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Nama Kategori</Label>
+                            <Input
+                                id="name"
+                                type="text"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                className={errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                                placeholder="Masukkan nama kategori..."
+                                required
+                            />
+                            {errors.name && (
+                                <p className="text-sm text-red-600">{errors.name}</p>
+                            )}
+                        </div>
 
-                    <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                            Deskripsi
-                        </label>
-                        <textarea
-                            id="description"
-                            value={data.description}
-                            onChange={(e) => setData('description', e.target.value)}
-                            rows={3}
-                            className={`mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#967259] focus:ring-[#967259] ${
-                                errors.description ? 'border-red-500' : ''
-                            }`}
-                        />
-                        {errors.description && (
-                            <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-                        )}
-                    </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Deskripsi</Label>
+                            <Textarea
+                                id="description"
+                                value={data.description}
+                                onChange={(e) => setData('description', e.target.value)}
+                                className={errors.description ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                                rows={3}
+                                placeholder="Masukkan deskripsi kategori..."
+                            />
+                            {errors.description && (
+                                <p className="text-sm text-red-600">{errors.description}</p>
+                            )}
+                        </div>
 
-                    <div className="flex justify-end">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="px-4 py-2 text-sm font-medium text-white bg-[#967259] rounded-lg hover:bg-[#7D5A44] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#967259] disabled:opacity-50"
-                        >
-                            {processing ? 'Menyimpan...' : 'Simpan Kategori'}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                        <div className="flex justify-end space-x-3">
+                            <Button type="button" variant="outline" asChild>
+                                <Link href={route('admin.categories.index')}>
+                                    Batal
+                                </Link>
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                            >
+                                {processing ? 'Menyimpan...' : 'Simpan Kategori'}
+                            </Button>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
         </AdminLayout>
     );
 }

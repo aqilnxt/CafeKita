@@ -31,6 +31,9 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
+// Improved OrderStatus with all possible statuses
+export type OrderStatus = 'pending' | 'processing' | 'ready' | 'completed' | 'cancelled';
+
 export interface User {
     id: number;
     name: string;
@@ -40,16 +43,17 @@ export interface User {
     created_at: string;
     updated_at: string;
     role: 'customer' | 'kasir' | 'admin';
-    [key: string]: unknown; // This allows for additional properties...
+    [key: string]: unknown;
 }
 
 export interface Order {
     id: number;
-    user: User;
-    total: number;
-    status: string;
+    user?: User; // Made optional since it can be null for guest orders
+    total_amount: number;
+    status: OrderStatus; // Use the proper type instead of string
     created_at: string;
     updated_at: string;
+    items: OrderItem[];
     [key: string]: unknown;
 }
 
@@ -79,4 +83,14 @@ export interface Category {
     products?: Product[];
     created_at: string;
     updated_at: string;
+}
+
+export interface OrderItem {
+    id: number;
+    order_id: number;
+    product_id: number;
+    product: Product;
+    price: number;
+    quantity: number;
+    [key: string]: unknown;
 }

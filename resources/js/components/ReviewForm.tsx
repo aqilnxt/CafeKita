@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useForm } from '@inertiajs/react';
+import { router } from '@inertiajs/react'; // Tambahkan import ini
 import { StarIcon } from '@heroicons/react/24/solid';
 import { StarIcon as StarOutlineIcon } from '@heroicons/react/24/outline';
 
@@ -25,6 +26,10 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, orderId, existingRev
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Update data rating sebelum submit
+        setData('rating', rating);
+        
         if (existingReview) {
             put(route('customer.reviews.update', existingReview.id));
         } else {
@@ -81,8 +86,8 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, orderId, existingRev
             <div>
                 <button
                     type="submit"
-                    disabled={processing}
-                    className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    disabled={processing || rating === 0}
+                    className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {processing ? 'Menyimpan...' : existingReview ? 'Update Review' : 'Kirim Review'}
                 </button>
@@ -91,4 +96,4 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, orderId, existingRev
     );
 };
 
-export default ReviewForm; 
+export default ReviewForm;

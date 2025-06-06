@@ -11,11 +11,12 @@ use App\Http\Controllers\Customer\CustomerController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use App\Http\Controllers\Customer\ReviewController;
-use App\Http\Controllers\Kasir\OrderController;
+use App\Http\Controllers\Kasir\OrderController as KasirOrderController;
 use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\Admin\ProductImportController;
 use App\Http\Controllers\Kasir\KasirController;
+use App\Http\Controllers\OrderController as CustomerOrderController;
 
 // Menu Routes
 Route::get('/', [MenuController::class, 'welcome'])->name('welcome');
@@ -65,6 +66,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     
     // Cashiers
     Route::resource('cashiers', CashierController::class);
+
+    // Settings
+    Route::get('/settings', [AdminSettingsController::class, 'index'])->name('settings.index');
 });
 
 // Kasir routes
@@ -72,9 +76,9 @@ Route::middleware(['auth', 'role:kasir'])->prefix('kasir')->name('kasir.')->grou
     Route::get('/dashboard', [App\Http\Controllers\Kasir\KasirController::class, 'dashboard'])->name('dashboard');
     
     // Orders
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-    Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
+    Route::get('/orders', [KasirOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [KasirOrderController::class, 'show'])->name('orders.show');
+    Route::patch('/orders/{order}/status', [KasirOrderController::class, 'updateStatus'])->name('orders.update-status');
     
     // Transactions
     Route::get('/transactions/create', [TransactionKasirController::class, 'create'])->name('transactions.create');
@@ -87,20 +91,31 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::get('/dashboard', [CustomerController::class, 'dashboard'])->name('dashboard');
     Route::get('/menu', [CustomerController::class, 'menu'])->name('menu');
     Route::get('/orders', [CustomerController::class, 'orders'])->name('orders');
+    
+    // ✅ Route yang lebih spesifik harus di atas
+    Route::get('/orders/success/{order}', [CustomerOrderController::class, 'success'])->name('orders.success');
     Route::get('/orders/{order}', [CustomerController::class, 'showOrder'])->name('orders.show');
-    Route::post('/orders', [CustomerController::class, 'storeOrder'])->name('orders.store');
+    
+    Route::post('/orders', [CustomerOrderController::class, 'store'])->name('orders.store');
+
     Route::get('/profile', [CustomerController::class, 'profile'])->name('profile');
     Route::put('/profile', [CustomerController::class, 'updateProfile'])->name('profile.update');
 
-    // Review
+    // Product detail route
+    Route::get('/products/{product}', [CustomerController::class, 'showProduct'])->name('products.show');
+
+    // Review routes
     Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
     Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])
+    ->name('customer.reviews.destroy');
 
     // Payment routes
     Route::get('/orders/{order}/payment', [PaymentController::class, 'show'])->name('payments.show');
     Route::post('/payments/callback', [PaymentController::class, 'callback'])->name('payments.callback');
 });
+
 
 // Rute untuk tabel
 Route::resource('tables', TableController::class);

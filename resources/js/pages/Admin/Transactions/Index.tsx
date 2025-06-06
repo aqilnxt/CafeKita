@@ -11,6 +11,13 @@ import {
     XCircleIcon,
     ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Transaction = {
     id: number;
@@ -44,29 +51,42 @@ export default function Index({ auth, transactions }: Props) {
         transaction.cashier.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const getStatusColor = (status: string) => {
+    const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
         switch (status) {
             case 'pending':
-                return 'bg-yellow-100 text-yellow-800';
+                return 'secondary';
             case 'completed':
-                return 'bg-green-100 text-green-800';
+                return 'default';
             case 'cancelled':
-                return 'bg-red-100 text-red-800';
+                return 'destructive';
             default:
-                return 'bg-gray-100 text-gray-800';
+                return 'outline';
         }
     };
 
     const getStatusIcon = (status: string) => {
         switch (status) {
             case 'pending':
-                return <ClockIcon className="h-5 w-5" />;
+                return <ClockIcon className="h-3 w-3" />;
             case 'completed':
-                return <CheckCircleIcon className="h-5 w-5" />;
+                return <CheckCircleIcon className="h-3 w-3" />;
             case 'cancelled':
-                return <XCircleIcon className="h-5 w-5" />;
+                return <XCircleIcon className="h-3 w-3" />;
             default:
                 return null;
+        }
+    };
+
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'pending':
+                return 'Menunggu';
+            case 'completed':
+                return 'Selesai';
+            case 'cancelled':
+                return 'Dibatalkan';
+            default:
+                return status;
         }
     };
 
@@ -75,6 +95,10 @@ export default function Index({ auth, transactions }: Props) {
         console.log('Exporting to Excel...');
     };
 
+    const totalTransactions = filteredTransactions.length;
+    const totalAmount = filteredTransactions.reduce((sum, t) => sum + t.total_amount, 0);
+    const completedTransactions = filteredTransactions.filter(t => t.status === 'completed').length;
+
     return (
         <AdminLayout
             user={auth.user}
@@ -82,115 +106,213 @@ export default function Index({ auth, transactions }: Props) {
         >
             <Head title="Transaksi" />
 
-            <div className="bg-white rounded-lg shadow">
-                <div className="p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="flex-1 max-w-sm">
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            <div className="space-y-6">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Total Transaksi</p>
+                                    <p className="text-2xl font-bold">{totalTransactions}</p>
                                 </div>
-                                <input
-                                    type="text"
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-[#967259] focus:border-[#967259] sm:text-sm"
-                                    placeholder="Cari nomor pesanan atau kasir..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
+                                <div className="p-2 bg-blue-100 rounded-lg">
+                                    <MagnifyingGlassIcon className="h-6 w-6 text-blue-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Transaksi Selesai</p>
+                                    <p className="text-2xl font-bold">{completedTransactions}</p>
+                                </div>
+                                <div className="p-2 bg-green-100 rounded-lg">
+                                    <CheckCircleIcon className="h-6 w-6 text-green-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Total Nilai</p>
+                                    <p className="text-2xl font-bold">Rp {totalAmount.toLocaleString('id-ID')}</p>
+                                </div>
+                                <div className="p-2 bg-[#967259]/10 rounded-lg">
+                                    <ArrowDownTrayIcon className="h-6 w-6 text-[#967259]" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Main Table Card */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <CardTitle>Daftar Transaksi</CardTitle>
+                                <CardDescription>
+                                    Kelola dan pantau semua transaksi yang terjadi
+                                </CardDescription>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                                <div className="relative min-w-0 sm:min-w-[300px]">
+                                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        type="text"
+                                        placeholder="Cari nomor pesanan atau kasir..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="pl-10"
+                                    />
+                                </div>
+                                <Select value={dateRange} onValueChange={setDateRange}>
+                                    <SelectTrigger className="w-full sm:w-48">
+                                        <SelectValue placeholder="Pilih periode" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Semua Waktu</SelectItem>
+                                        <SelectItem value="today">Hari Ini</SelectItem>
+                                        <SelectItem value="week">Minggu Ini</SelectItem>
+                                        <SelectItem value="month">Bulan Ini</SelectItem>
+                                        <SelectItem value="year">Tahun Ini</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Button onClick={handleExport} className="bg-[#967259] hover:bg-[#7D5A44]">
+                                    <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
+                                    Export Excel
+                                </Button>
                             </div>
                         </div>
-                        <div className="flex space-x-3">
-                            <select
-                                value={dateRange}
-                                onChange={(e) => setDateRange(e.target.value)}
-                                className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-[#967259] focus:border-[#967259] sm:text-sm rounded-md"
-                            >
-                                <option value="all">Semua Waktu</option>
-                                <option value="today">Hari Ini</option>
-                                <option value="week">Minggu Ini</option>
-                                <option value="month">Bulan Ini</option>
-                                <option value="year">Tahun Ini</option>
-                            </select>
-                            <button
-                                onClick={handleExport}
-                                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#967259] hover:bg-[#7D5A44] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#967259]"
-                            >
-                                <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-                                Export Excel
-                            </button>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>No. Pesanan</TableHead>
+                                        <TableHead>Kasir</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Total</TableHead>
+                                        <TableHead>Waktu</TableHead>
+                                        <TableHead className="text-right">Aksi</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredTransactions.length > 0 ? (
+                                        filteredTransactions.map((transaction) => (
+                                            <TableRow key={transaction.id} className="hover:bg-muted/50">
+                                                <TableCell className="font-medium">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-semibold">{transaction.order_number}</span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {transaction.items.length} item(s)
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center space-x-2">
+                                                        <div className="w-8 h-8 bg-[#967259]/10 rounded-full flex items-center justify-center">
+                                                            <span className="text-xs font-semibold text-[#967259]">
+                                                                {transaction.cashier.name.charAt(0).toUpperCase()}
+                                                            </span>
+                                                        </div>
+                                                        <span className="font-medium">{transaction.cashier.name}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge 
+                                                        variant={getStatusVariant(transaction.status)}
+                                                        className="flex items-center gap-1 w-fit"
+                                                    >
+                                                        {getStatusIcon(transaction.status)}
+                                                        {getStatusLabel(transaction.status)}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className="font-semibold text-green-600">
+                                                        Rp {transaction.total_amount.toLocaleString('id-ID')}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm">
+                                                            {new Date(transaction.created_at).toLocaleDateString('id-ID')}
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {new Date(transaction.created_at).toLocaleTimeString('id-ID', {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <TooltipProvider>
+                                                        <div className="flex items-center justify-end space-x-2">
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        asChild
+                                                                        className="h-8 w-8 p-0"
+                                                                    >
+                                                                        <Link href={`/admin/transactions/${transaction.id}`}>
+                                                                            <EyeIcon className="h-4 w-4" />
+                                                                        </Link>
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>Lihat Detail</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                            
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() => window.print()}
+                                                                        className="h-8 w-8 p-0"
+                                                                    >
+                                                                        <PrinterIcon className="h-4 w-4" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>Print Receipt</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </div>
+                                                    </TooltipProvider>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="text-center py-8">
+                                                <div className="flex flex-col items-center space-y-2">
+                                                    <MagnifyingGlassIcon className="h-8 w-8 text-muted-foreground" />
+                                                    <p className="text-muted-foreground">
+                                                        {searchTerm ? 'Tidak ada transaksi yang ditemukan' : 'Belum ada transaksi'}
+                                                    </p>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
                         </div>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        No. Pesanan
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Kasir
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Total
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Waktu
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Aksi
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {filteredTransactions.map((transaction) => (
-                                    <tr key={transaction.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">{transaction.order_number}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{transaction.cashier.name}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                                                {getStatusIcon(transaction.status)}
-                                                <span className="ml-1">{transaction.status}</span>
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
-                                                Rp {transaction.total_amount.toLocaleString('id-ID')}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
-                                                {new Date(transaction.created_at).toLocaleString('id-ID')}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <Link
-                                                href={`/admin/transactions/${transaction.id}`}
-                                                className="text-[#967259] hover:text-[#7D5A44] mr-4"
-                                            >
-                                                <EyeIcon className="h-5 w-5 inline" />
-                                            </Link>
-                                            <button
-                                                onClick={() => window.print()}
-                                                className="text-[#967259] hover:text-[#7D5A44]"
-                                            >
-                                                <PrinterIcon className="h-5 w-5 inline" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
             </div>
         </AdminLayout>
     );
-} 
+}

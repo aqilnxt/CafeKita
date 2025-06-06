@@ -154,7 +154,7 @@ export default function Welcome() {
             </Head>
 
             {/* Hero Carousel */}
-            <section className="relative h-screen overflow-hidden">
+            <section className="relative h-[calc(100vh-80px)] overflow-hidden">
                 {heroSlides.map((slide, index) => (
                     <div
                         key={index}

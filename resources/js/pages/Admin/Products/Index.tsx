@@ -3,13 +3,37 @@ import { router, Link } from '@inertiajs/react';
 import { Head } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
 import { PageProps } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { 
+    AlertDialog, 
+    AlertDialogAction, 
+    AlertDialogCancel, 
+    AlertDialogContent, 
+    AlertDialogDescription, 
+    AlertDialogFooter, 
+    AlertDialogHeader, 
+    AlertDialogTitle, 
+    AlertDialogTrigger 
+} from '@/components/ui/alert-dialog';
 import {
-    PlusIcon,
-    ArrowDownTrayIcon,
-    PencilIcon,
-    TrashIcon,
-    MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
+    Plus,
+    Download,
+    Edit,
+    Trash2,
+    Search,
+    MoreVertical,
+} from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type Product = {
     id: number;
@@ -37,9 +61,19 @@ export default function Index({ auth, products }: Props) {
     );
 
     const handleDelete = (id: number) => {
-        if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
-            router.delete(`/admin/products/${id}`);
-        }
+        router.delete(`/admin/products/${id}`);
+    };
+
+    const getStockVariant = (stock: number) => {
+        if (stock === 0) return 'destructive';
+        if (stock < 10) return 'secondary';
+        return 'default';
+    };
+
+    const getStockText = (stock: number) => {
+        if (stock === 0) return 'Habis';
+        if (stock < 10) return 'Terbatas';
+        return 'Tersedia';
     };
 
     return (
@@ -49,112 +83,346 @@ export default function Index({ auth, products }: Props) {
         >
             <Head title="Produk" />
 
-            <div className="bg-white rounded-lg shadow">
-                <div className="p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="flex-1 max-w-sm">
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
+            <div className="space-y-4">
+                <Card>
+                    <CardHeader>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                            <div>
+                                <CardTitle>Daftar Produk</CardTitle>
+                                <CardDescription>
+                                    Kelola semua produk yang tersedia di toko Anda
+                                </CardDescription>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <Button variant="outline" asChild className="w-full sm:w-auto">
+                                    <Link href={route('admin.products.import')}>
+                                        <Download className="w-4 h-4 mr-2" />
+                                        <span className="hidden sm:inline">Import Excel</span>
+                                        <span className="sm:hidden">Import</span>
+                                    </Link>
+                                </Button>
+                                <Button asChild className="w-full sm:w-auto">
+                                    <Link href={route('admin.products.create')}>
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        <span className="hidden sm:inline">Tambah Produk</span>
+                                        <span className="sm:hidden">Tambah</span>
+                                    </Link>
+                                </Button>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="mb-6">
+                            <div className="relative w-full sm:max-w-sm">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                <Input
                                     type="text"
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-[#967259] focus:border-[#967259] sm:text-sm"
                                     placeholder="Cari produk..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-10"
                                 />
                             </div>
                         </div>
-                        <div className="flex space-x-3">
-                            <Link
-                                href={route('admin.products.import')}
-                                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#967259] hover:bg-[#7D5A44] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#967259]"
-                            >
-                                <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-                                Import Excel
-                            </Link>
-                            <Link
-                                href={route('admin.products.create')}
-                                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#967259] hover:bg-[#7D5A44] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#967259]"
-                            >
-                                <PlusIcon className="h-5 w-5 mr-2" />
-                                Tambah Produk
-                            </Link>
-                        </div>
-                    </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Gambar
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Produk
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Kategori
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Harga
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Stok
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Aksi
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {filteredProducts.map((product) => (
-                                    <tr key={product.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="h-20 w-20">
-                                                <img
-                                                    className="h-20 w-20 rounded-lg object-cover"
-                                                    src={`/images/menu/${product.image}`}
-                                                    alt={product.name}
-                                                />
+                        {/* Desktop Table */}
+                        <div className="hidden lg:block rounded-md border overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="min-w-[280px]">Produk</TableHead>
+                                            <TableHead className="min-w-[100px]">Kategori</TableHead>
+                                            <TableHead className="min-w-[120px]">Harga</TableHead>
+                                            <TableHead className="min-w-[120px]">Stok</TableHead>
+                                            <TableHead className="text-right min-w-[100px]">Aksi</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {filteredProducts.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center py-8">
+                                                    <div className="text-gray-500">
+                                                        {searchTerm ? 'Tidak ada produk yang ditemukan.' : 'Belum ada produk.'}
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            filteredProducts.map((product) => (
+                                                <TableRow key={product.id}>
+                                                    <TableCell className="min-w-[280px]">
+                                                        <div className="flex items-center space-x-3">
+                                                            <Avatar className="w-12 h-12 flex-shrink-0">
+                                                                <AvatarImage 
+                                                                    src={`/images/menu/${product.image}`} 
+                                                                    alt={product.name}
+                                                                />
+                                                                <AvatarFallback>
+                                                                    {product.name.substring(0, 2).toUpperCase()}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="font-medium text-gray-900 truncate">
+                                                                    {product.name}
+                                                                </div>
+                                                                <div className="text-sm text-gray-500 truncate">
+                                                                    {product.description}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="min-w-[100px]">
+                                                        <Badge variant="outline" className="text-xs whitespace-nowrap">
+                                                            {product.category.name}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="font-medium min-w-[120px] whitespace-nowrap">
+                                                        {product.formatted_price || `Rp ${product.price.toLocaleString('id-ID')}`}
+                                                    </TableCell>
+                                                    <TableCell className="min-w-[120px]">
+                                                        <div className="flex items-center space-x-2">
+                                                            <Badge variant={getStockVariant(product.stock)} className="text-xs whitespace-nowrap">
+                                                                {getStockText(product.stock)}
+                                                            </Badge>
+                                                            <span className="text-sm text-gray-500 whitespace-nowrap">
+                                                                ({product.stock})
+                                                            </span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right min-w-[100px]">
+                                                        <div className="flex justify-end space-x-1">
+                                                            <Button variant="ghost" size="sm" asChild>
+                                                                <Link href={`/admin/products/${product.id}/edit`}>
+                                                                    <Edit className="w-4 h-4" />
+                                                                </Link>
+                                                            </Button>
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button variant="ghost" size="sm">
+                                                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                                                    </Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent className="max-w-md">
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Hapus Produk</AlertDialogTitle>
+                                                                        <AlertDialogDescription className="break-words">
+                                                                            Apakah Anda yakin ingin menghapus produk "{product.name}"? 
+                                                                            Tindakan ini tidak dapat dibatalkan.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                                                                        <AlertDialogAction 
+                                                                            onClick={() => handleDelete(product.id)}
+                                                                            className="bg-red-600 hover:bg-red-700"
+                                                                        >
+                                                                            Hapus
+                                                                        </AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+
+                        {/* Tablet Layout */}
+                        <div className="hidden md:block lg:hidden space-y-4">
+                            {filteredProducts.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <div className="text-gray-500">
+                                        {searchTerm ? 'Tidak ada produk yang ditemukan.' : 'Belum ada produk.'}
+                                    </div>
+                                </div>
+                            ) : (
+                                filteredProducts.map((product) => (
+                                    <Card key={product.id}>
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center space-x-4 min-w-0 flex-1">
+                                                    <Avatar className="w-16 h-16 flex-shrink-0">
+                                                        <AvatarImage 
+                                                            src={`/images/menu/${product.image}`} 
+                                                            alt={product.name}
+                                                        />
+                                                        <AvatarFallback>
+                                                            {product.name.substring(0, 2).toUpperCase()}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="min-w-0 flex-1">
+                                                        <h3 className="font-medium text-gray-900 truncate">
+                                                            {product.name}
+                                                        </h3>
+                                                        <p className="text-sm text-gray-500 truncate mt-1">
+                                                            {product.description}
+                                                        </p>
+                                                        <div className="flex items-center space-x-2 mt-2">
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {product.category.name}
+                                                            </Badge>
+                                                            <Badge variant={getStockVariant(product.stock)} className="text-xs">
+                                                                {getStockText(product.stock)} ({product.stock})
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center space-x-3 flex-shrink-0">
+                                                    <div className="text-right">
+                                                        <div className="font-medium text-sm whitespace-nowrap">
+                                                            {product.formatted_price || `Rp ${product.price.toLocaleString('id-ID')}`}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex space-x-1">
+                                                        <Button variant="ghost" size="sm" asChild>
+                                                            <Link href={`/admin/products/${product.id}/edit`}>
+                                                                <Edit className="w-4 h-4" />
+                                                            </Link>
+                                                        </Button>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button variant="ghost" size="sm">
+                                                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                                                </Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent className="max-w-md">
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Hapus Produk</AlertDialogTitle>
+                                                                    <AlertDialogDescription className="break-words">
+                                                                        Apakah Anda yakin ingin menghapus produk "{product.name}"? 
+                                                                        Tindakan ini tidak dapat dibatalkan.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                                                                    <AlertDialogAction 
+                                                                        onClick={() => handleDelete(product.id)}
+                                                                        className="bg-red-600 hover:bg-red-700"
+                                                                    >
+                                                                        Hapus
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                                            <div className="text-sm text-gray-500">{product.description}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{product.category.name}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
-                                                {product.formatted_price || `Rp ${product.price.toLocaleString('id-ID')}`}
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            )}
+                        </div>
+
+                        {/* Mobile Card Layout */}
+                        <div className="md:hidden space-y-3">
+                            {filteredProducts.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <div className="text-gray-500 text-sm">
+                                        {searchTerm ? 'Tidak ada produk yang ditemukan.' : 'Belum ada produk.'}
+                                    </div>
+                                </div>
+                            ) : (
+                                filteredProducts.map((product) => (
+                                    <Card key={product.id} className="overflow-hidden">
+                                        <CardContent className="p-3">
+                                            <div className="flex items-start space-x-3">
+                                                <Avatar className="w-12 h-12 flex-shrink-0">
+                                                    <AvatarImage 
+                                                        src={`/images/menu/${product.image}`} 
+                                                        alt={product.name}
+                                                    />
+                                                    <AvatarFallback className="text-xs">
+                                                        {product.name.substring(0, 2).toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex justify-between items-start gap-2">
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="font-medium text-gray-900 text-sm truncate">
+                                                                {product.name}
+                                                            </h3>
+                                                            <p className="text-xs text-gray-500 mt-1 line-clamp-2 break-words">
+                                                                {product.description}
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex-shrink-0">
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                                        <MoreVertical className="w-4 h-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end" className="w-32">
+                                                                    <DropdownMenuItem asChild>
+                                                                        <Link href={`/admin/products/${product.id}/edit`} className="text-xs">
+                                                                            <Edit className="w-3 h-3 mr-2" />
+                                                                            Edit
+                                                                        </Link>
+                                                                    </DropdownMenuItem>
+                                                                    <AlertDialog>
+                                                                        <AlertDialogTrigger asChild>
+                                                                            <DropdownMenuItem 
+                                                                                onSelect={(e) => e.preventDefault()}
+                                                                                className="text-red-600 focus:text-red-600 text-xs"
+                                                                            >
+                                                                                <Trash2 className="w-3 h-3 mr-2" />
+                                                                                Hapus
+                                                                            </DropdownMenuItem>
+                                                                        </AlertDialogTrigger>
+                                                                        <AlertDialogContent className="max-w-[90vw] sm:max-w-md">
+                                                                            <AlertDialogHeader>
+                                                                                <AlertDialogTitle className="text-base">Hapus Produk</AlertDialogTitle>
+                                                                                <AlertDialogDescription className="text-sm break-words">
+                                                                                    Apakah Anda yakin ingin menghapus produk "{product.name}"? 
+                                                                                    Tindakan ini tidak dapat dibatalkan.
+                                                                                </AlertDialogDescription>
+                                                                            </AlertDialogHeader>
+                                                                            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                                                                                <AlertDialogCancel className="w-full sm:w-auto">Batal</AlertDialogCancel>
+                                                                                <AlertDialogAction 
+                                                                                    onClick={() => handleDelete(product.id)}
+                                                                                    className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+                                                                                >
+                                                                                    Hapus
+                                                                                </AlertDialogAction>
+                                                                            </AlertDialogFooter>
+                                                                        </AlertDialogContent>
+                                                                    </AlertDialog>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-2 space-y-2">
+                                                        <div className="flex flex-wrap items-center gap-1">
+                                                            <Badge variant="outline" className="text-xs px-2 py-0.5 truncate max-w-[120px]">
+                                                                {product.category.name}
+                                                            </Badge>
+                                                            <Badge variant={getStockVariant(product.stock)} className="text-xs px-2 py-0.5 whitespace-nowrap">
+                                                                {getStockText(product.stock)}
+                                                            </Badge>
+                                                            <span className="text-xs text-gray-500 whitespace-nowrap">
+                                                                ({product.stock})
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex justify-between items-center">
+                                                            <div className="font-medium text-sm text-gray-900 truncate">
+                                                                {product.formatted_price || `Rp ${product.price.toLocaleString('id-ID')}`}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{product.stock}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <Link
-                                                href={`/admin/products/${product.id}/edit`}
-                                                className="text-[#967259] hover:text-[#7D5A44] mr-4"
-                                            >
-                                                <PencilIcon className="h-5 w-5 inline" />
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDelete(product.id)}
-                                                className="text-red-600 hover:text-red-900"
-                                            >
-                                                <TrashIcon className="h-5 w-5 inline" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </AdminLayout>
     );
