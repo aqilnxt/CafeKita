@@ -252,16 +252,20 @@ export default function Welcome() {
             <section className="py-12 px-8 bg-[#967259]">
                 <div className="max-w-6xl mx-auto">
                     <div className="bg-[#F5F5DC] dark:bg-[#3C2A21] p-8 rounded-lg shadow-xl">
-                        <h3 className="text-2xl font-bold text-center mb-6">Menu Spesial Minggu Ini</h3>
-                        <div className="flex flex-col md:flex-row items-center gap-8">
-                            <img src="/images/special-coffee.jpg" alt="Special Coffee" className="w-full md:w-1/2 rounded-lg"/>
-                            <div>
-                                <h4 className="text-xl font-semibold text-[#967259]">Vanilla Caramel Latte</h4>
-                                <p className="my-4">Nikmati paduan sempurna espresso, vanilla, dan caramel</p>
-                                <p className="text-2xl font-bold text-[#967259]">Rp 35.000</p>
-                                <p className="text-sm line-through text-gray-500">Rp 45.000</p>
-                            </div>
+                    <h3 className="text-2xl font-bold text-center mb-6">Menu Spesial Minggu Ini</h3>
+                    <div className="flex flex-col md:flex-row items-center gap-8">
+                        <img 
+                        src="/images/special-coffee.jpg" 
+                        alt="Special Coffee" 
+                        className="w-48 aspect-[4/3] rounded-lg object-cover"
+                        />
+                        <div>
+                        <h4 className="text-xl font-semibold text-[#967259]">Vanilla Caramel Latte</h4>
+                        <p className="my-4">Nikmati paduan sempurna espresso, vanilla, dan caramel</p>
+                        <p className="text-2xl font-bold text-[#967259]">Rp 35.000</p>
+                        <p className="text-sm line-through text-gray-500">Rp 45.000</p>
                         </div>
+                    </div>
                     </div>
                 </div>
             </section>
