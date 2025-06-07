@@ -32,34 +32,57 @@ type Props = PageProps & {
 };
 
 export default function Edit({ auth, product, categories }: Props) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         name: product?.name || '',
         price: product?.price?.toString() || '',
         category_id: product?.category_id?.toString() || '',
         description: product?.description || '',
         stock: product?.stock?.toString() || '',
         image: null as File | null,
+        _method: 'PUT' // Method spoofing untuk Laravel
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('admin.products.update', product.id), {
+       
+        // Buat FormData untuk multipart/form-data
+        const formData = new FormData();
+        formData.append('name', data.name);
+        formData.append('price', data.price);
+        formData.append('category_id', data.category_id);
+        formData.append('description', data.description || '');
+        formData.append('stock', data.stock);
+        formData.append('_method', 'PUT');
+       
+        if (data.image) {
+            formData.append('image', data.image);
+        }
+
+        // Gunakan post dengan FormData
+        post(route('admin.products.update', product.id), {
+            data: formData,
+            forceFormData: true,
             onSuccess: () => {
                 window.location.href = route('admin.products.index');
             },
+            onError: (errors) => {
+                console.log('Upload errors:', errors);
+            }
         });
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setData('image', e.target.files[0]);
+            const file = e.target.files[0];
+            console.log('File selected:', file.name, file.size, file.type);
+            setData('image', file);
         }
     };
 
     return (
         <AdminLayout user={auth.user}>
             <Head title="Edit Produk - Admin" />
-            
+           
             <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
@@ -73,7 +96,7 @@ export default function Edit({ auth, product, categories }: Props) {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nama Produk</Label>
@@ -112,8 +135,8 @@ export default function Edit({ auth, product, categories }: Props) {
 
                             <div className="space-y-2">
                                 <Label htmlFor="category_id">Kategori</Label>
-                                <Select 
-                                    value={data.category_id} 
+                                <Select
+                                    value={data.category_id}
                                     onValueChange={(value) => setData('category_id', value)}
                                 >
                                     <SelectTrigger className={errors.category_id ? 'border-red-500' : ''}>
@@ -172,10 +195,14 @@ export default function Edit({ auth, product, categories }: Props) {
                                 <Label htmlFor="image">Gambar Produk</Label>
                                 {product.image && (
                                     <div className="mt-2 mb-4">
+                                        <p className="text-sm text-gray-600 mb-2">Gambar saat ini:</p>
                                         <img
                                             src={`/images/menu/${product.image}`}
                                             alt={product.name}
                                             className="h-32 w-32 object-cover rounded-lg border"
+                                            onError={(e) => {
+                                                e.currentTarget.src = '/images/menu/default.jpg';
+                                            }}
                                         />
                                     </div>
                                 )}
@@ -183,9 +210,12 @@ export default function Edit({ auth, product, categories }: Props) {
                                     id="image"
                                     type="file"
                                     onChange={handleImageChange}
-                                    accept="image/*"
+                                    accept="image/jpeg,image/png,image/jpg,image/gif"
                                     className={errors.image ? 'border-red-500' : ''}
                                 />
+                                <p className="text-sm text-gray-500">
+                                    Kosongkan jika tidak ingin mengubah gambar. Max: 20MB
+                                </p>
                                 {errors.image && (
                                     <Alert variant="destructive">
                                         <AlertDescription>{errors.image}</AlertDescription>

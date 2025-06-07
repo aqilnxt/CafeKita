@@ -72,81 +72,80 @@ export default function Index({ auth, categories }: Props) {
         >
             <Head title="Kategori" />
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Manajemen Kategori</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="flex-1 max-w-sm">
-                            <div className="relative">
-                                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <Input
-                                    type="text"
-                                    className="pl-10"
-                                    placeholder="Cari kategori..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
+            <div className="p-4 sm:p-6 lg:p-8">
+                <Card className="w-full">
+                    <CardHeader className="px-4 sm:px-6">
+                        <CardTitle className="text-lg sm:text-xl">Manajemen Kategori</CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 sm:px-6">
+                        {/* Search and Actions - Responsive Layout */}
+                        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                            {/* Search Input */}
+                            <div className="flex-1 w-full sm:max-w-sm">
+                                <div className="relative">
+                                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <Input
+                                        type="text"
+                                        className="pl-10 w-full"
+                                        placeholder="Cari kategori..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                           
+                            {/* Action Buttons - Stack on mobile, inline on desktop */}
+                            <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="sm" className="w-full sm:w-auto">
+                                            <TrashIcon className="h-4 w-4 mr-2" />
+                                            <span className="hidden sm:inline">Hapus Semua</span>
+                                            <span className="sm:hidden">Hapus Semua</span>
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent className="mx-4 sm:mx-0">
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Hapus Semua Kategori</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Apakah Anda yakin ingin menghapus SEMUA kategori? Tindakan ini tidak dapat dibatalkan!
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                                            <AlertDialogCancel className="w-full sm:w-auto">Batal</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleDeleteAll} className="w-full sm:w-auto">
+                                                Hapus Semua
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                               
+                                <Button asChild className="w-full sm:w-auto">
+                                    <Link href={route('admin.categories.create')}>
+                                        <PlusIcon className="h-4 w-4 mr-2" />
+                                        <span className="hidden sm:inline">Tambah Kategori</span>
+                                        <span className="sm:hidden">Tambah</span>
+                                    </Link>
+                                </Button>
                             </div>
                         </div>
-                        <div className="flex space-x-3">
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="sm">
-                                        <TrashIcon className="h-4 w-4 mr-2" />
-                                        Hapus Semua
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Hapus Semua Kategori</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Apakah Anda yakin ingin menghapus SEMUA kategori? Tindakan ini tidak dapat dibatalkan!
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleDeleteAll}>
-                                            Hapus Semua
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                            <Button asChild>
-                                <Link href={route('admin.categories.create')}>
-                                    <PlusIcon className="h-4 w-4 mr-2" />
-                                    Tambah Kategori
-                                </Link>
-                            </Button>
-                        </div>
-                    </div>
 
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Nama Kategori</TableHead>
-                                    <TableHead>Deskripsi</TableHead>
-                                    <TableHead>Jumlah Produk</TableHead>
-                                    <TableHead className="text-right">Aksi</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredCategories.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="text-center text-gray-500 py-8">
-                                            {searchTerm ? 'Tidak ada kategori yang sesuai dengan pencarian' : 'Belum ada kategori'}
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    filteredCategories.map((category) => (
-                                        <TableRow key={category.id}>
-                                            <TableCell className="font-medium">{category.name}</TableCell>
-                                            <TableCell>{category.description}</TableCell>
-                                            <TableCell>{category.product_count}</TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end space-x-2">
+                        {/* Mobile Card View */}
+                        <div className="block sm:hidden space-y-4">
+                            {filteredCategories.length === 0 ? (
+                                <div className="text-center text-gray-500 py-8">
+                                    {searchTerm ? 'Tidak ada kategori yang sesuai dengan pencarian' : 'Belum ada kategori'}
+                                </div>
+                            ) : (
+                                filteredCategories.map((category) => (
+                                    <Card key={category.id} className="border">
+                                        <CardContent className="p-4">
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-medium text-base truncate">{category.name}</h3>
+                                                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{category.description}</p>
+                                                </div>
+                                                <div className="flex gap-2 ml-2">
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
@@ -167,17 +166,18 @@ export default function Index({ auth, categories }: Props) {
                                                                 <TrashIcon className="h-4 w-4" />
                                                             </Button>
                                                         </AlertDialogTrigger>
-                                                        <AlertDialogContent>
+                                                        <AlertDialogContent className="mx-4">
                                                             <AlertDialogHeader>
                                                                 <AlertDialogTitle>Hapus Kategori</AlertDialogTitle>
                                                                 <AlertDialogDescription>
                                                                     Apakah Anda yakin ingin menghapus kategori "{category.name}"? Tindakan ini tidak dapat dibatalkan.
                                                                 </AlertDialogDescription>
                                                             </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Batal</AlertDialogCancel>
+                                                            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                                                                <AlertDialogCancel className="w-full sm:w-auto">Batal</AlertDialogCancel>
                                                                 <AlertDialogAction
                                                                     onClick={() => handleDelete(category.id)}
+                                                                    className="w-full sm:w-auto"
                                                                 >
                                                                     Hapus
                                                                 </AlertDialogAction>
@@ -185,15 +185,100 @@ export default function Index({ auth, categories }: Props) {
                                                         </AlertDialogContent>
                                                     </AlertDialog>
                                                 </div>
-                                            </TableCell>
+                                            </div>
+                                            <div className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded inline-block">
+                                                {category.product_count} produk
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            )}
+                        </div>
+
+                        {/* Desktop Table View */}
+                        <div className="hidden sm:block rounded-md border overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="min-w-[150px]">Nama Kategori</TableHead>
+                                            <TableHead className="min-w-[200px] hidden md:table-cell">Deskripsi</TableHead>
+                                            <TableHead className="min-w-[120px]">Jumlah Produk</TableHead>
+                                            <TableHead className="text-right min-w-[100px]">Aksi</TableHead>
                                         </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {filteredCategories.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={4} className="text-center text-gray-500 py-8">
+                                                    {searchTerm ? 'Tidak ada kategori yang sesuai dengan pencarian' : 'Belum ada kategori'}
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            filteredCategories.map((category) => (
+                                                <TableRow key={category.id}>
+                                                    <TableCell className="font-medium">
+                                                        <div className="truncate max-w-[200px]" title={category.name}>
+                                                            {category.name}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="hidden md:table-cell">
+                                                        <div className="truncate max-w-[300px]" title={category.description}>
+                                                            {category.description}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>{category.product_count}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <div className="flex justify-end space-x-2">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                asChild
+                                                                className="h-8 w-8 p-0"
+                                                            >
+                                                                <Link href={`/admin/categories/${category.id}/edit`}>
+                                                                    <PencilIcon className="h-4 w-4" />
+                                                                </Link>
+                                                            </Button>
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                                                    >
+                                                                        <TrashIcon className="h-4 w-4" />
+                                                                    </Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Hapus Kategori</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            Apakah Anda yakin ingin menghapus kategori "{category.name}"? Tindakan ini tidak dapat dibatalkan.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                                                                        <AlertDialogAction
+                                                                            onClick={() => handleDelete(category.id)}
+                                                                        >
+                                                                            Hapus
+                                                                        </AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </AdminLayout>
     );
 }

@@ -30,7 +30,7 @@ export default function Contact() {
             </Head>
 
             {/* Hero Section */}
-            <div className="relative h-[40vh] bg-cover bg-center" style={{ backgroundImage: "url('/images/contact-hero.jpg')" }}>
+            <div className="relative h-[40vh] bg-cover bg-center" style={{ backgroundImage: "url('/images/hero3.jpg')" }}>
                 <div className="absolute inset-0 bg-black opacity-50"></div>
                 <div className="absolute inset-0 flex items-center justify-center text-center">
                     <div className="text-white px-4">
